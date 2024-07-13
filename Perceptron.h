@@ -3,8 +3,7 @@
 // Author: Edward Koch
 // Description: Holds the declaration of the Perceptron Class
 //              as created by following Daniel Schiffman's tutorial
-//  https://www.youtube.com/watch?v=XJ7HLz9VYz0&list=PLRqwX-V7Uu6aCibgK1PTWWu9by6XFdCfh
-//
+// https://thecodingtrain.com/tracks/neural-networks/neural-networks/1-introduction//
 // Revision History
 // Author     Date        Description
 //-----------------------------------------------------------------------------
