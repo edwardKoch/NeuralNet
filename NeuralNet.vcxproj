@@ -128,7 +128,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="NeuralNet.h" />
-    <ClInclude Include="Perceptron.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
