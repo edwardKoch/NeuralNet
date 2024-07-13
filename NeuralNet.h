@@ -23,27 +23,27 @@ template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 class NeuralNet
 {
 public:
-    NeuralNet(float_t learningRate);
+    NeuralNet(double_t learningRate);
 
     ~NeuralNet();
 
-    std::vector<float_t> guess(std::vector<float_t> inputs);
+    std::vector<double_t> guess(std::vector<double_t> inputs);
 
-    void train(std::vector<float_t> inputs, std::vector<float_t> targets);
+    void train(std::vector<double_t> inputs, std::vector<double_t> targets);
 
     void print();
 
 private:
     // Random Number Generator
     std::mt19937 rng;
-    std::uniform_real_distribution<float_t> uniformDist;
+    std::uniform_real_distribution<double_t> uniformDist;
 
     // Learning Rate
-    float_t learningRate;
+    double_t learningRate;
 };
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(float_t learningRate)
+inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(double_t learningRate)
     : rng((uint32_t)std::time(0)),
       uniformDist(-1.0, 1.0),
       learningRate(learningRate)
@@ -52,25 +52,25 @@ NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(float_t learningRate)
 }
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-NeuralNet<numInputs, numHidden, numOutputs>::~NeuralNet()
+inline NeuralNet<numInputs, numHidden, numOutputs>::~NeuralNet()
 {
 
 }
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-std::vector<float_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(std::vector<float_t> inputs)
+inline std::vector<double_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(std::vector<double_t> inputs)
 {
 
 }
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-void NeuralNet<numInputs, numHidden, numOutputs>::train(std::vector<float_t> inputs, std::vector<float_t> targets)
+inline void NeuralNet<numInputs, numHidden, numOutputs>::train(std::vector<double_t> inputs, std::vector<double_t> targets)
 {
 
 }
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-void NeuralNet<numInputs, numHidden, numOutputs>::print()
+inline void NeuralNet<numInputs, numHidden, numOutputs>::print()
 {
 
 }
