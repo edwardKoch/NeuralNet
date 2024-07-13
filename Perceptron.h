@@ -91,9 +91,15 @@ float_t Perceptron<numInputs>::guess(std::vector<float_t> inputs)
     // Add Bias
     sum += bias;
 
-    // TODO - Activation Function (temporarily clamp
-    float_t tempAF = std::max(-1.0, std::min(sum, 1.0));
-    return (float_t)tempAF;
+    // TODO - Activation Function (temporarily sign)
+    if (sum > 0)
+    {
+        return 1.0;
+    }
+    else
+    {
+        return -1.0;
+    }
 }
 
 template<uint16_t numInputs>

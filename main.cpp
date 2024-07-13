@@ -1,5 +1,5 @@
 #include "Perceptron.h"
-
+#include "NeuralNet.h"
 int main()
 {
     // Random Number Generator - included from Perceptron
@@ -10,7 +10,7 @@ int main()
 
     // Sample Training Set
     uint16_t correct = 0;
-    uint16_t total = 100000;
+    uint16_t total = 1000;
 
     float_t x = 0.0;
     float_t y = 0.0;
@@ -56,7 +56,7 @@ int main()
         }
         else
         {
-            printf("FAIL! Error: %.6f\n", guess - label);
+            printf("FAIL! Error: %.6f, Inputs: %.2f, %.2f\n", guess - label, x, y);
         }
     }
 
