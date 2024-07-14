@@ -8,7 +8,7 @@ int main()
     std::mt19937 rng((uint32_t)std::time(0));
     std::uniform_real_distribution<float> uniformDist(-1.0, 1.0);
 
-    NeuralNet<2, 2, 2>* brain = new NeuralNet<2, 2, 2>(NN::Activations::SIGMOID, 0.1);
+    std::unique_ptr<NeuralNet<2, 2, 2>> brain = std::make_unique<NeuralNet<2, 2, 2>>(NN::Activations::SIGMOID, 0.1);
     //brain->print();
 
     // Random Input for Neural Net Testing
@@ -24,9 +24,9 @@ int main()
     }
 
     // Matrix Testing
-    
-    Matrix<2, 3>* m1 = new Matrix<2, 3>;
-    Matrix<2, 3>* m2 = new Matrix<2, 3>;
+    /*
+    std::unique_ptr<Matrix<2, 3>> m1 = std::make_unique<Matrix<2, 3>>;
+    std::unique_ptr<Matrix<2, 3>> m2 = std::make_unique<Matrix<2, 3>>;
     Matrix<3, 2> m3;
     m1->print(); // Should be 2x3 0s
     m1->add(1);
@@ -44,7 +44,7 @@ int main()
     m2->print(); // Should be 2x3 2 3 2, 2 2 2
     m3 = m2->transpose();
     m3.print(); // Should be 3x2 2 2, 3 2, 2 2
-    Matrix<3, 3>* m5 = new Matrix<3, 3>;
+    std::unique_ptr<Matrix<3, 3>> m5 = std::make_unique<Matrix<3, 3>>;
     m5->randomize(-5, 5);
     m5->print(); // Should be 3x3 with random values
 
@@ -54,5 +54,5 @@ int main()
     m6.print();
     Matrix<2, 1> m7 = m4.multiply(m6);
     m7.print();
-
+    */
 }

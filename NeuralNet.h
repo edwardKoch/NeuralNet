@@ -128,11 +128,11 @@ inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(NN::Activations ac
       outputWeightsTransposed(),
       hiddenError()
 {
-    inputWeights.randomize(-1.0, 1.0);
-    hiddenBias.randomize(-1.0, 1.0);
+    inputWeights.randomize(rng, -1.0, 1.0);
+    hiddenBias.randomize(rng, -1.0, 1.0);
 
-    outputWeights.randomize(-1.0, 1.0);
-    outputBias.randomize(-1.0, 1.0);
+    outputWeights.randomize(rng, -1.0, 1.0);
+    outputBias.randomize(rng, -1.0, 1.0);
 
     // Choose Activation Function
     switch (activationFunciton)
@@ -223,8 +223,8 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const std::vector
     }
    
     // Make a guess on the inputs
-    // guess function updates outputVector and outputValues(matrix)
-    guess(inputs); // outputVector = guess(inputs);
+    // guess function updates outputValues
+    guess(inputs);
 
     // Calculate the Error at the outputs
     outputError = outputValues.copy();

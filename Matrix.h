@@ -45,7 +45,7 @@ public:
     void clear();
 
     // Randomize the values of the matrix given a range
-    void randomize(double_t min, double_t max);
+    void randomize(std::mt19937 &rng, double_t min, double_t max);
 
     // Return a copy of the matrix
     Matrix<numRows, numCols> copy();
@@ -60,17 +60,17 @@ public:
     void multiply(double_t scalar);
 
     // Perform Elementwise Addition - Must be same shape
-    void add(const Matrix<numRows, numCols>& addor);
+    void add(const Matrix<numRows, numCols> &addor);
 
     // Perform Elementwise Subtraction - Must be same shape
-    void sub(const Matrix<numRows, numCols>& subtor);
+    void sub(const Matrix<numRows, numCols> &subtor);
 
     // Perform Elementwise Multiplication - Must be same shape
-    void multiply(const Matrix<numRows, numCols>& scalar);
+    void multiply(const Matrix<numRows, numCols> &scalar);
 
     // Matrix Multiplication 
     template<uint16_t otherCols>
-    Matrix<numRows, otherCols> multiply(const Matrix<numCols, otherCols>& other);
+    Matrix<numRows, otherCols> multiply(const Matrix<numCols, otherCols> &other);
 
     // Apply function to each element
     void applyFunction(double_t (*func)(double_t));
@@ -82,9 +82,6 @@ private:
     // Templated Matrix Friend
     template<uint16_t friendRows, uint16_t friendCols>
     friend class Matrix;
-
-    // Random Number Generator
-    std::mt19937 rng;
 
     // Length of 1D array - Rows * Cols
     uint16_t length;
@@ -99,8 +96,7 @@ private:
 // Constructor - initialize to 0
 template<uint16_t numRows, uint16_t numCols>
 inline Matrix<numRows, numCols>::Matrix()
-    : rng((uint32_t)std::time(0)),
-      length(numRows * numCols)
+    : length(numRows * numCols)
 {
     for (int i = 0; i < length; ++i)
     {
@@ -160,7 +156,7 @@ inline void Matrix<numRows, numCols>::clear()
 
 // Randomize the values of the matrix given a range
 template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::randomize(double_t min, double_t max)
+inline void  Matrix<numRows, numCols>::randomize(std::mt19937 &rng, double_t min, double_t max)
 {
     std::uniform_real_distribution<double_t> uniformDist(min, max);
 
@@ -230,7 +226,7 @@ inline void Matrix<numRows, numCols>::multiply(double_t scalar)
 
 // Perform Elementwise Addition - Must be same shape
 template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::add(const Matrix<numRows, numCols>& addor)
+inline void Matrix<numRows, numCols>::add(const Matrix<numRows, numCols> &addor)
 {
     for (int i = 0; i < length; ++i)
     {
@@ -241,7 +237,7 @@ inline void Matrix<numRows, numCols>::add(const Matrix<numRows, numCols>& addor)
 
 // Perform Elementwise Subtraction - Must be same shape
 template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::sub(const Matrix<numRows, numCols>& subtor)
+inline void Matrix<numRows, numCols>::sub(const Matrix<numRows, numCols> &subtor)
 {
     for (int i = 0; i < length; ++i)
     {
@@ -251,7 +247,7 @@ inline void Matrix<numRows, numCols>::sub(const Matrix<numRows, numCols>& subtor
 
 // Perform Elementwise Multiplication - Must be same shape
 template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::multiply(const Matrix<numRows, numCols>& scalar)
+inline void Matrix<numRows, numCols>::multiply(const Matrix<numRows, numCols> &scalar)
 {
     for (int i = 0; i < length; ++i)
     {
@@ -262,7 +258,7 @@ inline void Matrix<numRows, numCols>::multiply(const Matrix<numRows, numCols>& s
 // Matrix Multiplication 
 template<uint16_t numRows, uint16_t numCols>
 template<uint16_t otherCols>
-inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matrix<numCols, otherCols>& other)
+inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matrix<numCols, otherCols> &other)
 {
     Matrix<numRows, otherCols> result;
     uint16_t myIndex = 0;
@@ -293,7 +289,7 @@ inline void Matrix<numRows, numCols>::applyFunction(double_t (*func)(double_t))
 {
     for (int i = 0; i < length; ++i)
     {
-        matrix[i] = func(matrix[i]);;
+        matrix[i] = func(matrix[i]);
     }
 }
 
