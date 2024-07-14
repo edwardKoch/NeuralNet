@@ -26,8 +26,14 @@ public:
     // Constructor - initialize to 0
     Matrix();
 
+    // Copy Constructor
+    Matrix(const Matrix<numRows, numCols>& m);
+
     // Destructor
     ~Matrix();
+
+    // Copy Assignment
+    Matrix<numRows, numCols>& operator=(const Matrix<numRows, numCols> other);
 
     // Get the number of rows in the Matrix
     uint16_t getRows() const { return numRows; }
@@ -46,9 +52,6 @@ public:
 
     // Randomize the values of the matrix given a range
     void randomize(std::mt19937 &rng, double_t min, double_t max);
-
-    // Return a copy of the matrix
-    Matrix<numRows, numCols> copy();
 
     // Transpose Matrix
     Matrix<numCols, numRows> transpose();
@@ -104,11 +107,36 @@ inline Matrix<numRows, numCols>::Matrix()
     }
 }
 
+// Copy Constructor
+template<uint16_t numRows, uint16_t numCols>
+inline Matrix<numRows, numCols>::Matrix(const Matrix<numRows, numCols>& m)
+{
+    length = m.length;
+    for (int i = 0; i < length; ++i)
+    {
+        matrix[i] = m.matrix[i];
+    }
+}
+
 // Destructor
 template<uint16_t numRows, uint16_t numCols>
 inline Matrix<numRows, numCols>::~Matrix()
 {
 
+}
+
+template<uint16_t numRows, uint16_t numCols>
+inline Matrix<numRows, numCols>& Matrix<numRows, numCols>::operator=(const Matrix<numRows, numCols> other)
+{
+    if (this != &other)
+    {
+        length = other.length;
+        for (int i = 0; i < length; ++i)
+        {
+            matrix[i] = other.matrix[i];
+        }
+    }
+    return *this;
 }
 
 // Get the value of an element
@@ -164,25 +192,6 @@ inline void  Matrix<numRows, numCols>::randomize(std::mt19937 &rng, double_t min
     {
         matrix[i] = uniformDist(rng);
     }
-}
-
-// Return a copy of the matrix
-template<uint16_t numRows, uint16_t numCols>
-inline Matrix<numRows, numCols> Matrix<numRows, numCols>::copy()
-{
-    Matrix<numRows, numCols> result;
-    uint16_t index = 0;
-
-    for (int row = 0; row < numRows; ++row)
-    {
-        for (int col = 0; col < numCols; ++col)
-        {
-            index = getIndex(row, col);
-            result.setElement(row, col, matrix[index]);
-        }
-    }
-
-    return result;
 }
 
 // Transpose Matrix

@@ -32,6 +32,12 @@ namespace NN
         return (input / (1 + abs(input)));
     }
 
+    double_t sigmoidDerivative(double_t input)
+    {
+        double_t sigInput = sigmoid(input);
+        return (sigInput * (1 - sigInput));
+    }
+
     // Round a double to prevent precision errors
     double_t round(double_t intput)
     {
@@ -71,41 +77,42 @@ private:
     // Learning Rate
     double_t learningRate;
 
-    // Input Matrix - store vector input values
+    ///////////////////////////////
+    //  Feed Forward Matricies   //
+    ///////////////////////////////
+    // Input Matricies 
     Matrix<numInputs, 1> inputValues;
 
-    // Weight Matrix - Input to Hidden
-    Matrix<numHidden, numInputs> inputWeights;
-
-    // Bias matrix - Hidden
+    // Hidden Matricies
+    Matrix<numHidden, numInputs> hiddenWeights;
     Matrix<numHidden, 1> hiddenBias;
 
-    // Hidden Layer Output - Matrix Product of Input Values and Input Weights/Bias
-    Matrix<numHidden, 1> hiddenOutput;
 
-    // Weight Matrix - Hidden to output
+    // Output Matricies
+    Matrix<numHidden, 1> hiddenValues;
     Matrix<numOutputs, numHidden> outputWeights;
-
-    // Bias Matrix - Output
     Matrix<numOutputs, 1> outputBias;
 
-    // Output Matrix - Matrix Product of HiddenOutput and Output Weights/Bias
     Matrix<numOutputs, 1> outputValues;
-
-    // Output Vector - From matrix to output
     std::vector<double_t> outputVector;
+    
+    ///////////////////////////////
+    // Backpropagation Matricies //
+    ///////////////////////////////
+    // Input Matricies
 
-    // Target Matrix - used in training
-    Matrix<numOutputs, 1> targetMatrix;
-
-    // Error Matrix from output - used in training
-    Matrix<numOutputs, 1> outputError;
-
-    // Output Weights Transposed - used in training
+    // Hidden Matricies
     Matrix<numHidden, numOutputs> outputWeightsTransposed;
-
-    // Error Matrix from Hidden Layer - used in training
     Matrix<numHidden, 1> hiddenError;
+    Matrix<numHidden, 1> hiddenValuesDerivative;
+    Matrix<1, numInputs> inputValuesTansposed;
+
+    // Output Matricies
+    Matrix<numOutputs, 1> targetMatrix;
+    Matrix<numOutputs, 1> outputError;
+    Matrix<numOutputs, 1> outputValuesDerrivative;
+    Matrix<1, numHidden> hiddenValuesTransposed;
+
 };
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
@@ -115,20 +122,26 @@ inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(NN::Activations ac
       activationFunciton(activation),
       actFunct(0),
       learningRate(learningRate),
+      // Feedforward Matricies
       inputValues(),
-      inputWeights(),
+      hiddenWeights(),
       hiddenBias(),
-      hiddenOutput(),
+      hiddenValues(),
       outputWeights(),
       outputBias(),
       outputValues(),
       outputVector(numOutputs),
+      // Backpropagation Matricies
+      outputWeightsTransposed(),
+      hiddenError(),
+      hiddenValuesDerivative(),
+      inputValuesTansposed(),
       targetMatrix(),
       outputError(),
-      outputWeightsTransposed(),
-      hiddenError()
+      outputValuesDerrivative(),
+      hiddenValuesTransposed()
 {
-    inputWeights.randomize(rng, -1.0, 1.0);
+    hiddenWeights.randomize(rng, -1.0, 1.0);
     hiddenBias.randomize(rng, -1.0, 1.0);
 
     outputWeights.randomize(rng, -1.0, 1.0);
@@ -176,16 +189,16 @@ inline std::vector<double_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(
     }
 
     // Perform Hidden Layer Multiplication
-    hiddenOutput = inputWeights.multiply(inputValues);
+    hiddenValues = hiddenWeights.multiply(inputValues);
 
     // Add Bias
-    hiddenOutput.add(hiddenBias);
+    hiddenValues.add(hiddenBias);
 
     // Apply Activation Function
-    hiddenOutput.applyFunction(actFunct);
+    hiddenValues.applyFunction(actFunct);
 
     // Perform Output Layer Multiplication
-    outputValues = outputWeights.multiply(hiddenOutput);
+    outputValues = outputWeights.multiply(hiddenValues);
 
     // Add Bias
     outputValues.add(outputBias);
@@ -227,8 +240,8 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const std::vector
     guess(inputs);
 
     // Calculate the Error at the outputs
-    outputError = outputValues.copy();
-    outputError.sub(targetMatrix);
+    outputError = targetMatrix;
+    outputError.sub(outputValues);
 
     // Calculate Hidden Errors - transposed weights times the error
     outputWeightsTransposed = outputWeights.transpose();
@@ -246,7 +259,7 @@ template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline void NeuralNet<numInputs, numHidden, numOutputs>::print()
 {
     printf("Input Weights:\n");
-    inputWeights.print();
+    hiddenWeights.print();
 
     printf("Input Bias:\n");
     hiddenBias.print();
