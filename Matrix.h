@@ -36,7 +36,7 @@ public:
     uint16_t getCols() const { return numCols; }
 
     // Get the value of an element
-    double_t getElement(uint16_t row, uint16_t col) const { return matrix[getIndex(row, col)]; }
+    double_t getElement(uint16_t row, uint16_t col) const;
 
     // Set the value of an element
     void setElement(uint16_t row, uint16_t col, double_t value);
@@ -114,6 +114,23 @@ inline Matrix<numRows, numCols>::~Matrix()
 {
 
 }
+
+// Get the value of an element
+template<uint16_t numRows, uint16_t numCols>
+inline double_t Matrix<numRows, numCols>::getElement(uint16_t row, uint16_t col) const
+{ 
+    uint16_t index = getIndex(row, col);
+    if (index >= length)
+    {
+#if _DEBUG
+        printf("Matrix - Get Element: Invalid Index\n");
+#endif
+        return 0.0;
+    }
+
+    return matrix[index];
+}
+
 
 // Set the value of an element
 template<uint16_t numRows, uint16_t numCols>
@@ -249,7 +266,6 @@ inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matri
 {
     Matrix<numRows, otherCols> result;
     uint16_t myIndex = 0;
-    uint16_t otherIndex = 0;
 
     for (int resRow = 0; resRow < numRows; ++resRow)
     {
@@ -260,9 +276,8 @@ inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matri
             for (int idx = 0; idx < numCols; ++idx)
             {
                 myIndex = getIndex(resRow, idx);
-                otherIndex = other.getIndex(idx, resRow);
 
-                value += matrix[myIndex] * other.matrix[otherIndex];
+                value += matrix[myIndex] * other.getElement(idx, resRow);
             }
 
             result.setElement(resRow, resCol, value);
@@ -303,7 +318,8 @@ template<uint16_t numRows, uint16_t numCols>
 inline uint16_t Matrix<numRows, numCols>::getIndex(uint16_t row, uint16_t col) const
 {
     // Map 2D coordinates to 1D array index
-    return row * numCols + col;
+    // ETK - INVESTIGATE ERROR
+    return row * (numCols - 1) + col;
 }
 
 #endif

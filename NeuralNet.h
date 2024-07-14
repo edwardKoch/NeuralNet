@@ -31,6 +31,12 @@ namespace NN
         // Sigmoid Approximation
         return (input / (1 + abs(input)));
     }
+
+    // Round a double to prevent precision errors
+    double_t round(double_t intput)
+    {
+        return std::round(intput * 100.0) / 100.0;
+    }
 };
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
@@ -95,6 +101,9 @@ private:
     // Error Matrix from output - used in training
     Matrix<numOutputs, 1> outputError;
 
+    // Output Weights Transposed - used in training
+    Matrix<numHidden, numOutputs> outputWeightsTransposed;
+
     // Error Matrix from Hidden Layer - used in training
     Matrix<numHidden, 1> hiddenError;
 };
@@ -116,6 +125,7 @@ inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(NN::Activations ac
       outputVector(numOutputs),
       targetMatrix(),
       outputError(),
+      outputWeightsTransposed(),
       hiddenError()
 {
     inputWeights.randomize(-1.0, 1.0);
@@ -166,6 +176,8 @@ inline std::vector<double_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(
     }
 
     // Perform Hidden Layer Multiplication
+    //inputWeights.applyFunction(NN::round);
+    //inputValues.applyFunction(NN::round);
     hiddenOutput = inputWeights.multiply(inputValues);
 
     // Add Bias
@@ -175,6 +187,8 @@ inline std::vector<double_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(
     hiddenOutput.applyFunction(actFunct);
 
     // Perform Output Layer Multiplication
+    //outputWeights.applyFunction(NN::round);
+    //hiddenOutput.applyFunction(NN::round);
     outputValues = outputWeights.multiply(hiddenOutput);
 
     // Add Bias
@@ -221,7 +235,10 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const std::vector
     outputError.sub(targetMatrix);
 
     // Calculate Hidden Errors - transposed weights times the error
-    hiddenError = (outputWeights.transpose()).multiply(outputError);
+    //outputWeights.applyFunction(NN::round);
+    //outputError.applyFunction(NN::round);
+    outputWeightsTransposed = outputWeights.transpose();
+    hiddenError = outputWeightsTransposed.multiply(outputError);
 
     print();
     inputValues.print();

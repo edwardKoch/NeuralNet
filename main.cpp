@@ -24,7 +24,7 @@ int main()
     }
 
     // Matrix Testing
-    /**
+    
     Matrix<2, 3>* m1 = new Matrix<2, 3>;
     Matrix<2, 3>* m2 = new Matrix<2, 3>;
     Matrix<3, 2> m3;
@@ -38,7 +38,7 @@ int main()
     m1->add(*m2);
     m1->print(); // Should be 2x3 4s
     Matrix<2, 2> m4 = m1->multiply(m3);
-    m3.print(); // Should be 3x2 0->5s
+    m3.print(); // Should be 3x2 0.5s
     m4.print(); // Should be 2x2 6s
     m2->setElement(0, 1, 3);
     m2->print(); // Should be 2x3 2 3 2, 2 2 2
@@ -47,5 +47,5 @@ int main()
     Matrix<3, 3>* m5 = new Matrix<3, 3>;
     m5->randomize(-5, 5);
     m5->print(); // Should be 3x3 with random values
-    */
+
 }
