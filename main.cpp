@@ -8,12 +8,13 @@ int main()
     std::mt19937 rng((uint32_t)std::time(0));
     std::uniform_real_distribution<float> uniformDist(-1.0, 1.0);
 
-    NeuralNet<2, 3, 1>* brain = new NeuralNet<2, 3, 1>(NN::Activations::SIGMOID, 0.1);
-    brain->print();
+    NeuralNet<2, 2, 2>* brain = new NeuralNet<2, 2, 2>(NN::Activations::SIGMOID, 0.1);
+    //brain->print();
 
     // Random Input for Neural Net Testing
     std::vector<double_t> in = { 1, 0 };
-
+    std::vector<double_t> target = { 1, 0 };
+    brain->train(in, target);
     std::vector<double_t> out = brain->guess(in);
 
     printf("Output:\n");

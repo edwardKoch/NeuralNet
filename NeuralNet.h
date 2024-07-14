@@ -43,10 +43,10 @@ public:
     ~NeuralNet();
 
     // Guess an output vector based on an input vector
-    std::vector<double_t> guess(std::vector<double_t> inputs);
+    std::vector<double_t> guess(const std::vector<double_t>& inputs);
 
     // Train the neural net based on an input vector and a target vector
-    void train(std::vector<double_t> inputs, std::vector<double_t> targets);
+    void train(const std::vector<double_t>& inputs, const std::vector<double_t>& targets);
 
     // Print the weights and Bias for the entire network
     void print();
@@ -88,6 +88,15 @@ private:
 
     // Output Vector - From matrix to output
     std::vector<double_t> outputVector;
+
+    // Target Matrix - used in training
+    Matrix<numOutputs, 1> targetMatrix;
+
+    // Error Matrix from output - used in training
+    Matrix<numOutputs, 1> outputError;
+
+    // Error Matrix from Hidden Layer - used in training
+    Matrix<numHidden, 1> hiddenError;
 };
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
@@ -104,7 +113,10 @@ inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(NN::Activations ac
       outputWeights(),
       outputBias(),
       outputValues(),
-      outputVector(numOutputs)
+      outputVector(numOutputs),
+      targetMatrix(),
+      outputError(),
+      hiddenError()
 {
     inputWeights.randomize(-1.0, 1.0);
     hiddenBias.randomize(-1.0, 1.0);
@@ -132,7 +144,7 @@ inline NeuralNet<numInputs, numHidden, numOutputs>::~NeuralNet()
 }
 // Guess an output vector based on an input vector
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-inline std::vector<double_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(std::vector<double_t> inputs)
+inline std::vector<double_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(const std::vector<double_t>& inputs)
 {
     // Clear Output
     outputVector.clear();
@@ -182,9 +194,40 @@ inline std::vector<double_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(
 
 // Train the neural net based on an input vector and a target vector
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-inline void NeuralNet<numInputs, numHidden, numOutputs>::train(std::vector<double_t> inputs, std::vector<double_t> targets)
+inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const std::vector<double_t>& inputs, const std::vector<double_t>& targets)
 {
+    // Error Checking
+    if (targets.size() != numOutputs)
+    {
+#if _DEBUG
+        printf("NeuralNet - Train: Invalid Target Vector\n");
+#endif
+        return;
+    }
 
+    // Convert Targets to Matrix
+    targetMatrix.clear();
+    for (int i = 0; i < numOutputs; ++i)
+    {
+        targetMatrix.setElement(i, 0, targets[i]);
+    }
+   
+    // Make a guess on the inputs
+    // guess function updates outputVector and outputValues(matrix)
+    guess(inputs); // outputVector = guess(inputs);
+
+    // Calculate the Error at the outputs
+    outputError = outputValues.copy();
+    outputError.sub(targetMatrix);
+
+    // Calculate Hidden Errors - transposed weights times the error
+    hiddenError = (outputWeights.transpose()).multiply(outputError);
+
+    print();
+    inputValues.print();
+    outputValues.print();
+    outputError.print();
+    hiddenError.print();
 }
 
 // Print the weights and Bias for the entire network
@@ -200,7 +243,7 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::print()
     printf("Output Weights:\n");
     outputWeights.print();
 
-    printf("Output Weights:\n");
+    printf("Output Bias:\n");
     outputBias.print();
 }
 #endif

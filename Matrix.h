@@ -60,14 +60,17 @@ public:
     void multiply(double_t scalar);
 
     // Perform Elementwise Addition - Must be same shape
-    void add(Matrix<numRows, numCols> addor);
+    void add(const Matrix<numRows, numCols>& addor);
+
+    // Perform Elementwise Subtraction - Must be same shape
+    void sub(const Matrix<numRows, numCols>& subtor);
 
     // Perform Elementwise Multiplication - Must be same shape
-    void multiply(Matrix<numRows, numCols> scalar);
+    void multiply(const Matrix<numRows, numCols>& scalar);
 
     // Matrix Multiplication 
     template<uint16_t otherCols>
-    Matrix<numRows, otherCols> multiply(Matrix<numCols, otherCols> other);
+    Matrix<numRows, otherCols> multiply(const Matrix<numCols, otherCols>& other);
 
     // Apply function to each element
     void applyFunction(double_t (*func)(double_t));
@@ -210,7 +213,7 @@ inline void Matrix<numRows, numCols>::multiply(double_t scalar)
 
 // Perform Elementwise Addition - Must be same shape
 template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::add(Matrix<numRows, numCols> addor)
+inline void Matrix<numRows, numCols>::add(const Matrix<numRows, numCols>& addor)
 {
     for (int i = 0; i < length; ++i)
     {
@@ -218,9 +221,20 @@ inline void Matrix<numRows, numCols>::add(Matrix<numRows, numCols> addor)
     }
 }
 
+
+// Perform Elementwise Subtraction - Must be same shape
+template<uint16_t numRows, uint16_t numCols>
+inline void Matrix<numRows, numCols>::sub(const Matrix<numRows, numCols>& subtor)
+{
+    for (int i = 0; i < length; ++i)
+    {
+        matrix[i] -= subtor.matrix[i];
+    }
+}
+
 // Perform Elementwise Multiplication - Must be same shape
 template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::multiply(Matrix<numRows, numCols> scalar)
+inline void Matrix<numRows, numCols>::multiply(const Matrix<numRows, numCols>& scalar)
 {
     for (int i = 0; i < length; ++i)
     {
@@ -231,7 +245,7 @@ inline void Matrix<numRows, numCols>::multiply(Matrix<numRows, numCols> scalar)
 // Matrix Multiplication 
 template<uint16_t numRows, uint16_t numCols>
 template<uint16_t otherCols>
-inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(Matrix<numCols, otherCols> other)
+inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matrix<numCols, otherCols>& other)
 {
     Matrix<numRows, otherCols> result;
     uint16_t myIndex = 0;
