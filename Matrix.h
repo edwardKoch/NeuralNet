@@ -23,7 +23,7 @@ template<uint16_t numRows, uint16_t numCols>
 class Matrix
 {
 public:
-    // Constructor
+    // Constructor - initialize to 0
     Matrix();
 
     // Destructor
@@ -41,8 +41,14 @@ public:
     // Set the value of an element
     void setElement(uint16_t row, uint16_t col, double_t value);
 
+    // Set all values to 0
+    void clear();
+
     // Randomize the values of the matrix given a range
     void randomize(double_t min, double_t max);
+
+    // Return a copy of the matrix
+    Matrix<numRows, numCols> copy();
 
     // Transpose Matrix
     Matrix<numCols, numRows> transpose();
@@ -62,6 +68,9 @@ public:
     // Matrix Multiplication 
     template<uint16_t otherCols>
     Matrix<numRows, otherCols> multiply(Matrix<numCols, otherCols> other);
+
+    // Apply function to each element
+    void applyFunction(double_t (*func)(double_t));
 
     // Print the matrix
     void print();
@@ -84,7 +93,7 @@ private:
     uint16_t getIndex(uint16_t row, uint16_t col) const;
 };
 
-// Constructor
+// Constructor - initialize to 0
 template<uint16_t numRows, uint16_t numCols>
 inline Matrix<numRows, numCols>::Matrix()
     : rng((uint32_t)std::time(0)),
@@ -119,6 +128,16 @@ inline void Matrix<numRows, numCols>::setElement(uint16_t row, uint16_t col, dou
     matrix[index] = value;
 }
 
+// Set all values to 0
+template<uint16_t numRows, uint16_t numCols>
+inline void Matrix<numRows, numCols>::clear()
+{
+    for (int i = 0; i < length; ++i)
+    {
+        matrix[i] = 0.0;
+    }
+}
+
 // Randomize the values of the matrix given a range
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::randomize(double_t min, double_t max)
@@ -129,6 +148,25 @@ inline void Matrix<numRows, numCols>::randomize(double_t min, double_t max)
     {
         matrix[i] = uniformDist(rng);
     }
+}
+
+// Return a copy of the matrix
+template<uint16_t numRows, uint16_t numCols>
+inline Matrix<numRows, numCols> Matrix<numRows, numCols>::copy()
+{
+    Matrix<numRows, numCols> result;
+    uint16_t index = 0;
+
+    for (int row = 0; row < numRows; ++row)
+    {
+        for (int col = 0; col < numCols; ++col)
+        {
+            index = getIndex(row, col);
+            result.setElement(row, col, matrix[index]);
+        }
+    }
+
+    return result;
 }
 
 // Transpose Matrix
@@ -218,6 +256,16 @@ inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(Matrix<numC
     }
 
     return result;
+}
+
+// Apply function to each element
+template<uint16_t numRows, uint16_t numCols>
+inline void Matrix<numRows, numCols>::applyFunction(double_t (*func)(double_t))
+{
+    for (int i = 0; i < length; ++i)
+    {
+        matrix[i] = func(matrix[i]);;
+    }
 }
 
 // Print the matrix
