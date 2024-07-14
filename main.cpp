@@ -48,4 +48,11 @@ int main()
     m5->randomize(-5, 5);
     m5->print(); // Should be 3x3 with random values
 
+    Matrix<2, 1> m6;
+    m6.add(2);
+    m4.print();
+    m6.print();
+    Matrix<2, 1> m7 = m4.multiply(m6);
+    m7.print();
+
 }

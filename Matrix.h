@@ -123,7 +123,7 @@ inline double_t Matrix<numRows, numCols>::getElement(uint16_t row, uint16_t col)
     if (index >= length)
     {
 #if _DEBUG
-        printf("Matrix - Get Element: Invalid Index\n");
+        printf("Matrix<%u, %u> - Get Element: Invalid Index %u (r%u, c%u)\n", numRows, numCols, index, row, col);
 #endif
         return 0.0;
     }
@@ -140,7 +140,7 @@ inline void Matrix<numRows, numCols>::setElement(uint16_t row, uint16_t col, dou
     if (index >= length)
     {
 #if _DEBUG
-        printf("Matrix - Set Element: Invalid Index\n");
+        printf("Matrix<%u, %u> - Set Element: Invalid Index %u (r%u, c%u)\n", numRows, numCols, index, row, col);
 #endif
         return;
     }
@@ -277,7 +277,7 @@ inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matri
             {
                 myIndex = getIndex(resRow, idx);
 
-                value += matrix[myIndex] * other.getElement(idx, resRow);
+                value += matrix[myIndex] * other.getElement(idx, resCol);
             }
 
             result.setElement(resRow, resCol, value);
@@ -319,7 +319,7 @@ inline uint16_t Matrix<numRows, numCols>::getIndex(uint16_t row, uint16_t col) c
 {
     // Map 2D coordinates to 1D array index
     // ETK - INVESTIGATE ERROR
-    return row * (numCols - 1) + col;
+    return row * numCols + col;
 }
 
 #endif

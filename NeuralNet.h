@@ -35,7 +35,7 @@ namespace NN
     // Round a double to prevent precision errors
     double_t round(double_t intput)
     {
-        return std::round(intput * 100.0) / 100.0;
+        return std::round(intput * 1000.0) / 1000.0;
     }
 };
 
@@ -176,8 +176,6 @@ inline std::vector<double_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(
     }
 
     // Perform Hidden Layer Multiplication
-    //inputWeights.applyFunction(NN::round);
-    //inputValues.applyFunction(NN::round);
     hiddenOutput = inputWeights.multiply(inputValues);
 
     // Add Bias
@@ -187,8 +185,6 @@ inline std::vector<double_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(
     hiddenOutput.applyFunction(actFunct);
 
     // Perform Output Layer Multiplication
-    //outputWeights.applyFunction(NN::round);
-    //hiddenOutput.applyFunction(NN::round);
     outputValues = outputWeights.multiply(hiddenOutput);
 
     // Add Bias
@@ -235,8 +231,6 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const std::vector
     outputError.sub(targetMatrix);
 
     // Calculate Hidden Errors - transposed weights times the error
-    //outputWeights.applyFunction(NN::round);
-    //outputError.applyFunction(NN::round);
     outputWeightsTransposed = outputWeights.transpose();
     hiddenError = outputWeightsTransposed.multiply(outputError);
 
