@@ -1,3 +1,10 @@
+#ifdef _WIN32
+#include <windows.h>
+HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+#else
+
+#endif
+
 #include "Matrix.h"
 #include "NeuralNet.h"
 
@@ -8,20 +15,78 @@ int main()
     std::mt19937 rng((uint32_t)std::time(0));
     std::uniform_real_distribution<float> uniformDist(-1.0, 1.0);
 
-    std::unique_ptr<NeuralNet<2, 2, 2>> brain = std::make_unique<NeuralNet<2, 2, 2>>(NN::Activations::SIGMOID, 0.1);
-    //brain->print();
+    std::unique_ptr<NeuralNet<2, 2, 1>> brain = std::make_unique<NeuralNet<2, 2, 1>>(NN::Activations::RELU, 0.01);
 
-    // Random Input for Neural Net Testing
-    std::vector<double_t> in = { 1, 0 };
-    std::vector<double_t> target = { 1, 0 };
-    brain->train(in, target);
-    std::vector<double_t> out = brain->guess(in);
+    // XOR - Training Set
+    std::vector<std::vector<double_t>> xorInputs;
+    xorInputs.push_back(std::vector<double_t>{1.0, 0.0});
+    xorInputs.push_back(std::vector<double_t>{0.0, 1.0});
+    xorInputs.push_back(std::vector<double_t>{1.0, 1.0});
+    xorInputs.push_back(std::vector<double_t>{0.0, 0.0});
 
-    printf("Output:\n");
-    for (int i = 0; i < out.size(); ++i)
+    std::vector<std::vector<double_t>> xorLabels;
+    xorLabels.push_back(std::vector<double_t>{1.0});
+    xorLabels.push_back(std::vector<double_t>{1.0});
+    xorLabels.push_back(std::vector<double_t>{0.0});
+    xorLabels.push_back(std::vector<double_t>{0.0});
+
+
+
+    // Batch 
+    int batch = 0;
+    double_t error = 0;
+    double_t largestError = 1;
+    while (std::abs(largestError) > 0.05 && batch < 1000)
     {
-        printf("%.2f\n", out[i]);
+        // Print stats from last batch
+#ifdef _WIN32
+        SetConsoleCursorPosition(hStdout, _COORD{ 0, 0 });
+#else
+        // Move up 5 lines
+        printf("\x5b[A");
+#endif
+        printf("Batch %u\n", ++batch);
+
+        std::vector<double_t> output;
+        largestError = 0.0;
+        for (int i = 0; i < xorInputs.size(); ++i)
+        {
+            output = brain->guess(xorInputs[i]);
+            printf("Guess: %.2f\n", output[0]);
+            printf("Actual: %.2f\n", xorLabels[i][0]);
+
+            error = xorLabels[i][0] - output[0];
+            printf("Error: %.2f\n\n", error);
+
+            if (std::abs(error) > std::abs(largestError))
+            {
+                largestError = error;
+            }
+        }
+        printf("largestError: %.2f\n", largestError);
+        //brain->print();
+        //system("pause");
+
+        // Train
+        for (int count = 0; count < 10000; ++count)
+        {
+            for (int i = 0; i < xorInputs.size(); ++i)
+            {
+                brain->train(xorInputs[i], xorLabels[i]);
+            }
+        }
     }
+
+    if (std::abs(largestError) < 0.05)
+    {
+        printf("Way to go!! Neural Net was trained!!\n");
+    }
+    else
+    {
+        printf("Wow you suck!!! Neural Net is broken!!\n");
+        brain->print();
+    }
+    system("pause");
 
     // Matrix Testing
     /*

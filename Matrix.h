@@ -125,6 +125,7 @@ inline Matrix<numRows, numCols>::~Matrix()
 
 }
 
+// Copy Assignment
 template<uint16_t numRows, uint16_t numCols>
 inline Matrix<numRows, numCols>& Matrix<numRows, numCols>::operator=(const Matrix<numRows, numCols> other)
 {
@@ -312,7 +313,7 @@ inline void Matrix<numRows, numCols>::print()
         {
             uint16_t index = getIndex(row, col);
 
-            printf("%.2f ", matrix[index]);
+            printf("%f ", matrix[index]);
         }
         printf("\n");
     }

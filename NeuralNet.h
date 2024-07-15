@@ -23,7 +23,8 @@ namespace NN
 {
     enum class Activations : uint8_t
     {
-        SIGMOID
+        SIGMOID,
+        RELU
     };
 
     double_t sigmoid(double_t input)
@@ -38,6 +39,31 @@ namespace NN
         return (sigInput * (1 - sigInput));
     }
 
+    double_t relu(double_t input)
+    {
+        if (input < 0.0)
+        {
+            return 0;
+        }
+        else
+        {
+            return input;
+        }
+    }
+
+    double_t reluDerivative(double_t input)
+    {
+        if (input < 0.0)
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+
+
     // Round a double to prevent precision errors
     double_t round(double_t intput)
     {
@@ -50,7 +76,7 @@ class NeuralNet
 {
 public:
     
-    NeuralNet(NN::Activations activation = NN::Activations::SIGMOID, double_t learningRate = 0.1);
+    NeuralNet(NN::Activations activation = NN::Activations::SIGMOID, double_t learningRate = 0.001);
 
     ~NeuralNet();
 
@@ -73,6 +99,7 @@ private:
 
     // Activation Function
     double_t(*actFunct)(double_t);
+    double_t(*actFunctDeriv)(double_t);
 
     // Learning Rate
     double_t learningRate;
@@ -102,17 +129,15 @@ private:
     // Input Matricies
 
     // Hidden Matricies
-    Matrix<numHidden, numOutputs> outputWeightsTransposed;
+    Matrix<numHidden, numInputs> deltaHiddenWeights;
     Matrix<numHidden, 1> hiddenError;
     Matrix<numHidden, 1> hiddenValuesDerivative;
-    Matrix<1, numInputs> inputValuesTansposed;
 
     // Output Matricies
     Matrix<numOutputs, 1> targetMatrix;
+    Matrix<numOutputs, numHidden> deltaOutputWeights;
     Matrix<numOutputs, 1> outputError;
     Matrix<numOutputs, 1> outputValuesDerrivative;
-    Matrix<1, numHidden> hiddenValuesTransposed;
-
 };
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
@@ -132,14 +157,13 @@ inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(NN::Activations ac
       outputValues(),
       outputVector(numOutputs),
       // Backpropagation Matricies
-      outputWeightsTransposed(),
+      deltaHiddenWeights(),
       hiddenError(),
       hiddenValuesDerivative(),
-      inputValuesTansposed(),
       targetMatrix(),
+      deltaOutputWeights(),
       outputError(),
-      outputValuesDerrivative(),
-      hiddenValuesTransposed()
+      outputValuesDerrivative()
 {
     hiddenWeights.randomize(rng, -1.0, 1.0);
     hiddenBias.randomize(rng, -1.0, 1.0);
@@ -152,10 +176,17 @@ inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(NN::Activations ac
     {
     case NN::Activations::SIGMOID:
         actFunct = NN::sigmoid;
+        actFunctDeriv = NN::sigmoidDerivative;
+        break;
+
+    case NN::Activations::RELU:
+        actFunct = NN::relu;
+        actFunctDeriv = NN::reluDerivative;
         break;
 
     default:
         actFunct = NN::sigmoid;
+        actFunctDeriv = NN::sigmoidDerivative;
         break;
     }
 }
@@ -239,19 +270,71 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const std::vector
     // guess function updates outputValues
     guess(inputs);
 
+    // Catch run-away training
+    if (std::abs(hiddenWeights.getElement(0, 0)) > 1000 ||
+        std::abs(hiddenBias.getElement(0, 0)) > 1000 ||
+        std::abs(outputWeights.getElement(0, 0)) > 1000 ||
+        std::abs(outputBias.getElement(0, 0)) > 1000)
+    {
+        //system("pause");
+    }
+
     // Calculate the Error at the outputs
     outputError = targetMatrix;
     outputError.sub(outputValues);
 
-    // Calculate Hidden Errors - transposed weights times the error
-    outputWeightsTransposed = outputWeights.transpose();
-    hiddenError = outputWeightsTransposed.multiply(outputError);
+    // Calculate Hidden Errors - transposed weights times the output error
+    hiddenError = (outputWeights.transpose()).multiply(outputError);
 
-    print();
-    inputValues.print();
-    outputValues.print();
-    outputError.print();
-    hiddenError.print();
+    // Calculate Output weight adjustment matrix
+    // deltaWeights = learningRate * OutputError * (OutputValues * (1 - OutputValues)) * HiddenValues(transposed)
+
+    //(OutputValues * (1 - OutputValues))
+    outputValuesDerrivative = outputValues;
+    outputValuesDerrivative.applyFunction(actFunctDeriv);
+
+    // OutputError * (OutputValues * (1 - OutputValues)) - Element-wise multiplication
+    outputError.multiply(outputValuesDerrivative);
+
+    // learningRate * OutputError * (OutputValues * (1 - OutputValues))
+    outputError.multiply(learningRate);
+
+    // Output Bias Adjustment
+    // deltaBias = learningRate * OutputError * (OutputValues * (1 - OutputValues))
+    // Apply Hidden Bias Corrections
+    outputBias.add(outputError);
+
+    // OutputError * (OutputValues * (1 - OutputValues)) * HiddenValues(transposed)
+    deltaOutputWeights = outputError.multiply(hiddenValues.transpose());
+
+    // Apply Output Corrections
+    outputWeights.add(deltaOutputWeights);
+
+
+
+    // Calculate Hidden weight adjustment matrix
+    // deltaWeights = learningRate * HiddenError * (HiddenValues * (1 - HiddenValues)) * InputValues(transposed)
+
+    // (HiddenValues * (1 - HiddenValues))
+    hiddenValuesDerivative = hiddenValues;
+    hiddenValuesDerivative.applyFunction(actFunctDeriv);
+
+    // HiddenError * (HiddenValues * (1 - HiddenValues)) - Element-wise multiplications
+    hiddenError.multiply(hiddenValuesDerivative);
+
+    // learningRate * HiddenError * (HiddenValues * (1 - HiddenValues))
+    hiddenError.multiply(learningRate);
+
+    // Hidden Bias Adjustment
+    // deltaBias = learningRate * HiddenError * (HiddenValues * (1 - HiddenValues))
+    // Apply Hidden Bias Corrections
+    hiddenBias.add(hiddenError);
+
+    // learningRate * HiddenError * (HiddenValues * (1 - HiddenValues)) * InputValues(transposed)
+    deltaHiddenWeights = hiddenError.multiply(inputValues.transpose());
+
+    // Apply Hidden Weight Corrections
+    hiddenWeights.add(deltaHiddenWeights);
 }
 
 // Print the weights and Bias for the entire network
