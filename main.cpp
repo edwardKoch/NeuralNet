@@ -13,9 +13,9 @@ int main()
 {
     // Random Number Generator
     std::mt19937 rng((uint32_t)std::time(0));
-    std::uniform_real_distribution<float> uniformDist(-1.0, 1.0);
+    std::uniform_real_distribution<float> uniformDist(0.0, 3.9);
 
-    std::unique_ptr<NeuralNet<2, 2, 1>> brain = std::make_unique<NeuralNet<2, 2, 1>>(NN::Activations::SIGMOID, 0.01);
+    std::unique_ptr<NeuralNet<2, 4, 1>> brain = std::make_unique<NeuralNet<2, 4, 1>>(NN::Activations::SIGMOID, 0.01);
 
     // XOR - Training Set
     std::vector<std::vector<double_t>> xorInputs;
@@ -36,7 +36,7 @@ int main()
     int batch = 0;
     double_t error = 0;
     double_t largestError = 1;
-    while (std::abs(largestError) > 0.05 && batch < 1000)
+    while (std::abs(largestError) > 0.05 && batch < 10000)
     {
         // Print stats from last batch
 #ifdef _WIN32
@@ -68,12 +68,13 @@ int main()
         //system("pause");
 
         // Train
-        for (int count = 0; count < 10000; ++count)
+        for (int count = 0; count < 100; ++count)
         {
-            for (int i = 0; i < xorInputs.size(); ++i)
-            {
-                brain->train(xorInputs[i], xorLabels[i]);
-            }
+            //for (int i = 0; i < xorInputs.size(); ++i)
+            //{
+                uint16_t idx = std::floor(uniformDist(rng));
+                brain->train(xorInputs[idx], xorLabels[idx]);
+            //}
         }
     }
 

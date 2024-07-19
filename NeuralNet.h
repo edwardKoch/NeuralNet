@@ -69,6 +69,12 @@ namespace NN
     {
         return std::round(intput * 1000.0) / 1000.0;
     }
+
+    double_t square(double_t input)
+    {
+        return input * input;
+}
+
 };
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
@@ -288,6 +294,8 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const std::vector
     outputError.sub(outputValues);
     //outputError = outputValues;
     //outputError.sub(targetMatrix);
+    // Mean Squared Error
+    outputError.applyFunction(NN::square);
 
     // Calculate Hidden Errors - transposed weights times the output error
     hiddenError = (outputWeights.transpose()).multiply(outputError);
