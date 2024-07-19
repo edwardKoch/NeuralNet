@@ -209,6 +209,10 @@ inline std::vector<double_t> NeuralNet<numInputs, numHidden, numOutputs>::guess(
 #if _DEBUG
         printf("NeuralNet - Guess: Invalid Input Vector\n");
 #endif
+        for (int i = 0; i < numOutputs; ++i)
+        {
+            outputVector.push_back(0.0);
+        }
         return outputVector;
     }
 
@@ -282,6 +286,8 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const std::vector
     // Calculate the Error at the outputs
     outputError = targetMatrix;
     outputError.sub(outputValues);
+    //outputError = outputValues;
+    //outputError.sub(targetMatrix);
 
     // Calculate Hidden Errors - transposed weights times the output error
     hiddenError = (outputWeights.transpose()).multiply(outputError);
@@ -294,18 +300,19 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const std::vector
     outputValuesDerrivative.applyFunction(actFunctDeriv);
 
     // OutputError * (OutputValues * (1 - OutputValues)) - Element-wise multiplication
-    outputError.multiply(outputValuesDerrivative);
+    //outputError.multiply(outputValuesDerrivative);
+    outputValuesDerrivative.multiply(outputError);
 
     // learningRate * OutputError * (OutputValues * (1 - OutputValues))
-    outputError.multiply(learningRate);
+    outputValuesDerrivative.multiply(learningRate);
 
     // Output Bias Adjustment
     // deltaBias = learningRate * OutputError * (OutputValues * (1 - OutputValues))
     // Apply Hidden Bias Corrections
-    outputBias.add(outputError);
+    outputBias.add(outputValuesDerrivative);
 
     // OutputError * (OutputValues * (1 - OutputValues)) * HiddenValues(transposed)
-    deltaOutputWeights = outputError.multiply(hiddenValues.transpose());
+    deltaOutputWeights = outputValuesDerrivative.multiply(hiddenValues.transpose());
 
     // Apply Output Corrections
     outputWeights.add(deltaOutputWeights);
@@ -320,18 +327,19 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const std::vector
     hiddenValuesDerivative.applyFunction(actFunctDeriv);
 
     // HiddenError * (HiddenValues * (1 - HiddenValues)) - Element-wise multiplications
-    hiddenError.multiply(hiddenValuesDerivative);
+    //hiddenError.multiply(hiddenValuesDerivative);
+    hiddenValuesDerivative.multiply(hiddenError);
 
     // learningRate * HiddenError * (HiddenValues * (1 - HiddenValues))
-    hiddenError.multiply(learningRate);
+    hiddenValuesDerivative.multiply(learningRate);
 
     // Hidden Bias Adjustment
     // deltaBias = learningRate * HiddenError * (HiddenValues * (1 - HiddenValues))
     // Apply Hidden Bias Corrections
-    hiddenBias.add(hiddenError);
+    hiddenBias.add(hiddenValuesDerivative);
 
     // learningRate * HiddenError * (HiddenValues * (1 - HiddenValues)) * InputValues(transposed)
-    deltaHiddenWeights = hiddenError.multiply(inputValues.transpose());
+    deltaHiddenWeights = hiddenValuesDerivative.multiply(inputValues.transpose());
 
     // Apply Hidden Weight Corrections
     hiddenWeights.add(deltaHiddenWeights);

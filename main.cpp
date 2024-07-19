@@ -15,7 +15,7 @@ int main()
     std::mt19937 rng((uint32_t)std::time(0));
     std::uniform_real_distribution<float> uniformDist(-1.0, 1.0);
 
-    std::unique_ptr<NeuralNet<2, 2, 1>> brain = std::make_unique<NeuralNet<2, 2, 1>>(NN::Activations::RELU, 0.01);
+    std::unique_ptr<NeuralNet<2, 2, 1>> brain = std::make_unique<NeuralNet<2, 2, 1>>(NN::Activations::SIGMOID, 0.01);
 
     // XOR - Training Set
     std::vector<std::vector<double_t>> xorInputs;
@@ -64,7 +64,7 @@ int main()
             }
         }
         printf("largestError: %.2f\n", largestError);
-        //brain->print();
+        brain->print();
         //system("pause");
 
         // Train
@@ -84,7 +84,7 @@ int main()
     else
     {
         printf("Wow you suck!!! Neural Net is broken!!\n");
-        brain->print();
+        //brain->print();
     }
     system("pause");
 
