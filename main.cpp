@@ -43,6 +43,7 @@ int main()
 
     m3.print();
 
-    
+    Matrix<4, 2> m4 = m3.transpose();
+    m4.print();
 
 }

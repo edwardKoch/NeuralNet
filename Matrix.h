@@ -79,6 +79,9 @@ public:
     template<uint16_t otherCols>
     Matrix<numRows, otherCols> multiply(const Matrix<numCols, otherCols> other);
 
+    // Transpose the Matrix
+    Matrix<numCols, numRows> transpose();
+
 private:
     // Templated Matrix Friend
     template<uint16_t friendRows, uint16_t friendCols>
@@ -289,7 +292,6 @@ inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matri
     // Temp Variables
     double_t value = 0;
     uint16_t myIdx = 0;
-    uint16_t otherIdx = 0;
 
     // For each row in the resulting Matrix
     for (uint16_t resRow = 0; resRow < numRows; ++resRow)
@@ -304,13 +306,32 @@ inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matri
             for (uint16_t i = 0; i < numCols; ++i)
             {
                 myIdx = getIndex(resRow, i);
-                otherIdx = other.getIndex(i, resCol);
 
-                value += (matrix[myIdx] * other.matrix[otherIdx]);
+                value += (matrix[myIdx] * other.getElement(i, resCol));
             }
 
             // Set value in result matrix
             result.setElement(resRow, resCol, value);
+        }
+    }
+
+    return result;
+}
+
+// Transpose the Matrix
+template<uint16_t numRows, uint16_t numCols>
+inline Matrix<numCols, numRows> Matrix<numRows, numCols>::transpose()
+{
+    Matrix<numCols, numRows> result;
+
+    // For each row in the starting Matrix
+    for (uint16_t row = 0; row < numRows; ++row)
+    {
+        // For each col in the starting Matrix
+        for (uint16_t col = 0; col < numCols; ++col)
+        {
+            // Set the col,row of the result to the value in row,col of self
+            result.setElement(col, row, getElement(row, col));
         }
     }
 
