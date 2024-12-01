@@ -9,6 +9,7 @@
 // Author     Date        Description
 //-----------------------------------------------------------------------------
 // E. Koch    07/12/24    Initial Creation 
+// E. Koch    11/30/24    Starting Fresh
 //-----------------------------------------------------------------------------
 #ifndef MATRIX_H
 #define MATRIX_H
@@ -53,28 +54,6 @@ public:
     // Randomize the values of the matrix given a range
     void randomize(std::mt19937 &rng, double_t min, double_t max);
 
-    // Transpose Matrix
-    Matrix<numCols, numRows> transpose();
-
-    // Perform Scalar Addition
-    void add(double_t addor);
-
-    // Perform Scalar Multiplication
-    void multiply(double_t scalar);
-
-    // Perform Elementwise Addition - Must be same shape
-    void add(const Matrix<numRows, numCols> &addor);
-
-    // Perform Elementwise Subtraction - Must be same shape
-    void sub(const Matrix<numRows, numCols> &subtor);
-
-    // Perform Elementwise Multiplication - Must be same shape
-    void multiply(const Matrix<numRows, numCols> &scalar);
-
-    // Matrix Multiplication 
-    template<uint16_t otherCols>
-    Matrix<numRows, otherCols> multiply(const Matrix<numCols, otherCols> &other);
-
     // Apply function to each element
     void applyFunction(double_t (*func)(double_t));
 
@@ -109,12 +88,12 @@ inline Matrix<numRows, numCols>::Matrix()
 
 // Copy Constructor
 template<uint16_t numRows, uint16_t numCols>
-inline Matrix<numRows, numCols>::Matrix(const Matrix<numRows, numCols>& m)
+inline Matrix<numRows, numCols>::Matrix(const Matrix<numRows, numCols>& other)
 {
-    length = m.length;
+    length = other.length;
     for (int i = 0; i < length; ++i)
     {
-        matrix[i] = m.matrix[i];
+        matrix[i] = other.matrix[i];
     }
 }
 
@@ -195,104 +174,6 @@ inline void  Matrix<numRows, numCols>::randomize(std::mt19937 &rng, double_t min
     }
 }
 
-// Transpose Matrix
-template<uint16_t numRows, uint16_t numCols>
-inline Matrix<numCols, numRows> Matrix<numRows, numCols>::transpose()
-{
-    Matrix<numCols, numRows> result;
-    uint16_t index = 0;
-
-    for (int row = 0; row < numRows; ++row)
-    {
-        for (int col = 0; col < numCols; ++col)
-        {
-            index = getIndex(row, col);
-            result.setElement(col, row, matrix[index]);
-        }
-    }
-
-    return result;
-}
-
-// Perform Scalar Addition
-template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::add(double_t addor)
-{
-    for (int i = 0; i < length; ++i)
-    {
-        matrix[i] += addor;
-    }
-}
-
-// Perform Scalar Multiplication
-template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::multiply(double_t scalar)
-{
-    for (int i = 0; i < length; ++i)
-    {
-        matrix[i] *= scalar;
-    }
-}
-
-// Perform Elementwise Addition - Must be same shape
-template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::add(const Matrix<numRows, numCols> &addor)
-{
-    for (int i = 0; i < length; ++i)
-    {
-        matrix[i] += addor.matrix[i];
-    }
-}
-
-
-// Perform Elementwise Subtraction - Must be same shape
-template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::sub(const Matrix<numRows, numCols> &subtor)
-{
-    for (int i = 0; i < length; ++i)
-    {
-        matrix[i] -= subtor.matrix[i];
-    }
-}
-
-// Perform Elementwise Multiplication - Must be same shape
-template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::multiply(const Matrix<numRows, numCols> &scalar)
-{
-    for (int i = 0; i < length; ++i)
-    {
-        matrix[i] *= scalar.matrix[i];
-    }
-}
-
-// Matrix Multiplication 
-template<uint16_t numRows, uint16_t numCols>
-template<uint16_t otherCols>
-inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matrix<numCols, otherCols> &other)
-{
-    Matrix<numRows, otherCols> result;
-    uint16_t myIndex = 0;
-
-    for (int resRow = 0; resRow < numRows; ++resRow)
-    {
-        for (int resCol = 0; resCol < otherCols; ++resCol)
-        {
-            double_t value = 0.0;
-            // Sum the Dow Products of this rows and other cols
-            for (int idx = 0; idx < numCols; ++idx)
-            {
-                myIndex = getIndex(resRow, idx);
-
-                value += matrix[myIndex] * other.getElement(idx, resCol);
-            }
-
-            result.setElement(resRow, resCol, value);
-        }
-    }
-
-    return result;
-}
-
 // Apply function to each element
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::applyFunction(double_t (*func)(double_t))
@@ -324,7 +205,6 @@ template<uint16_t numRows, uint16_t numCols>
 inline uint16_t Matrix<numRows, numCols>::getIndex(uint16_t row, uint16_t col) const
 {
     // Map 2D coordinates to 1D array index
-    // ETK - INVESTIGATE ERROR
     return row * numCols + col;
 }
 
