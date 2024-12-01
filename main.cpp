@@ -11,13 +11,8 @@ HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 // Global RNG
 std::mt19937 rng(0);//(uint32_t)std::time(0));
 
-// Run Matrix Math Tests
-void matrixTest();
-
 int main()
 {
-    matrixTest();
-
     // Random Number Generator
     std::uniform_real_distribution<float> uniformDist(0.0, 3.9);
 
