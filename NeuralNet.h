@@ -30,13 +30,16 @@ namespace NN
     double_t sigmoid(double_t input)
     {
         // Sigmoid Approximation
-        return (input / (1 + abs(input)));
+        // return (input / (1 + abs(input)));
+
+        // Actual Sigmoid
+        return ((1.0) / (1.0 + std::exp(-input)));
     }
 
     double_t sigmoidDerivative(double_t input)
     {
         double_t sigInput = sigmoid(input);
-        return (sigInput * (1 - sigInput));
+        return (sigInput * (1.0 - sigInput));
     }
 
     double_t relu(double_t input)
@@ -95,6 +98,12 @@ public:
     // Set the Learning Rate
     void setLearningRate(double_t lr);
 
+    // Randomize the Weights
+    void randomize(double_t min, double_t max);
+
+    // Generate an output array based on an input array
+    void guess(const double_t (&inputs)[numInputs], double_t (&outputs)[numOutputs]);
+
 private:
     // Random Number Generator
     std::mt19937 rng;
@@ -110,6 +119,29 @@ private:
     // Learning Rate
     double_t learningRate;
 
+    /////////////////////////////
+    // Feed Fordward Matricies //
+    /////////////////////////////
+    Matrix<numInputs, 1> inputValues;
+
+    Matrix<numHidden, numInputs> inputWeights;
+    Matrix<numHidden, 1> inputBias;
+
+    Matrix<numHidden, 1> hiddenValues;
+
+    Matrix<numOutputs, numHidden> hiddenWeights;
+    Matrix<numOutputs, 1> hiddenBias;
+
+    Matrix<numOutputs, 1> outputValues;
+
+    /////////////////////////////
+    // Feed Fordward Functions //
+    /////////////////////////////
+    // Calculate Hidden Layer Values based on Input
+    void inputToHidden();
+
+    // Calculate Output Values based on Hidden
+    void hiddenToOutput();
 };
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
@@ -138,6 +170,15 @@ inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(std::mt19937 rngIn
         actFunctDeriv = NN::sigmoidDerivative;
         break;
     }
+
+    // Initialize Matricies
+    inputValues.clear();
+    inputWeights.clear();
+    inputBias.clear();
+
+    hiddenValues.clear();
+    hiddenWeights.clear();
+    hiddenBias.clear();
 }
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
@@ -151,6 +192,70 @@ template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline void NeuralNet<numInputs, numHidden, numOutputs>::setLearningRate(double_t lr)
 {
     learningRate = lr;
+}
+
+// Randomize the Weights
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::randomize(double_t min, double_t max)
+{
+    inputWeights.randomize(rng, min, max);
+    inputBias.randomize(rng, min, max);
+
+    hiddenWeights.randomize(rng, min, max);
+    hiddenBias.randomize(rng, min, max);
+}
+
+// Generate an output array based on an input array
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::guess(const double_t(&inputs)[numInputs], double_t(&outputs)[numOutputs])
+{
+    // Reset all intermediate Values
+    inputValues.clear();
+    hiddenValues.clear();
+
+    // Populate Inputs
+    inputValues.fill(inputs);
+
+    // Feed Inputs to Hidden Layer
+    inputToHidden();
+
+    // Feed Hidden to Outputs
+    hiddenToOutput();
+
+    // Populate output array
+    outputValues.toArray(outputs);
+
+}
+
+/////////////////////////////
+// Feed Fordward Functions //
+/////////////////////////////
+// Calculate Hidden Layer Values based on Input
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::inputToHidden()
+{
+    // Multiply Input Values by Input Weights
+    hiddenValues = inputWeights.multiply(inputValues);
+
+    // Add Input Bias
+    hiddenValues.add(inputBias);
+
+    // Apply activation funciton
+    hiddenValues.applyFunction(actFunct);
+}
+
+// Calculate Output Values based on Hidden
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::hiddenToOutput()
+{
+    // Multiply Hidden values by hidden weights
+    outputValues = hiddenWeights.multiply(hiddenValues);
+
+    // Add hidden bias
+    outputValues.add(hiddenBias);
+
+    // Apply activation funciton
+    outputValues.applyFunction(actFunct);
 }
 #endif
 

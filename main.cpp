@@ -13,13 +13,10 @@ std::mt19937 rng(0);//(uint32_t)std::time(0));
 
 int main()
 {
-    // Random Number Generator
-    std::uniform_real_distribution<float> uniformDist(0.0, 3.9);
-
-    NeuralNet<2, 4, 2> brain(rng,    // Random Number Generator
-                             NN::Activations::SIGMOID, // Activation Function
-                             0.001); // Learning Rate
-
+    //////////////////////
+    // Matrix Tests
+    //////////////////////
+    
     // 2x3 Matrix
     // 1 2 3
     // 4 5 6
@@ -45,5 +42,25 @@ int main()
 
     Matrix<4, 2> m4 = m3.transpose();
     m4.print();
+
+    //////////////////////
+    // Neural Network
+    //////////////////////
+    
+    // Random Number Generator
+    std::uniform_real_distribution<float> uniformDist(0.0, 3.9);
+
+    NeuralNet<2, 2, 2> brain(rng,    // Random Number Generator
+        NN::Activations::SIGMOID, // Activation Function
+        0.001); // Learning Rate
+
+    double_t input[2] = { 1, 2 };
+    double_t output[2] = { 0, 0 };
+
+    brain.randomize(-1.0, 1.0);
+
+    brain.guess(input, output);
+
+    printf("[%f, %f ]", output[0], output[1]);
 
 }

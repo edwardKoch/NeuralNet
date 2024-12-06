@@ -28,16 +28,22 @@ public:
     Matrix();
 
     // Constructor - initialize from array
-    Matrix(double_t initArr[numRows * numCols]);
+    Matrix(const double_t(&initArr)[numRows * numCols]);
 
     // Copy Constructor
-    Matrix(const Matrix<numRows, numCols>& m);
+    Matrix(const Matrix<numRows, numCols> &m);
 
     // Destructor
     ~Matrix();
 
     // Copy Assignment
-    Matrix<numRows, numCols>& operator=(const Matrix<numRows, numCols> other);
+    Matrix<numRows, numCols>& operator=(const Matrix<numRows, numCols> &other);
+
+    // Fill the Matrix based on an array
+    void fill(const double_t(&initArr)[numRows * numCols]);
+
+    // Populate an array with the Matrix values
+    void toArray(double_t (&arr)[numRows * numCols]);
 
     // Get the number of rows in the Matrix
     uint16_t getRows() const { return numRows; }
@@ -67,17 +73,17 @@ public:
     void add(double_t addor);
 
     // Element-wise addition
-    void add(const Matrix<numRows, numCols> addor);
+    void add(const Matrix<numRows, numCols> &addor);
 
     // Scalar Multiplicaiton
     void multiply(double_t scalar);
 
     // Element-wise Multiplicaiton
-    void multiply(const Matrix<numRows, numCols> scalar);
+    void multiply(const Matrix<numRows, numCols> &scalar);
 
     // Dot-Product Multiplication - Other must have the same number of rows as our columns
     template<uint16_t otherCols>
-    Matrix<numRows, otherCols> multiply(const Matrix<numCols, otherCols> other);
+    Matrix<numRows, otherCols> multiply(const Matrix<numCols, otherCols> &other);
 
     // Transpose the Matrix
     Matrix<numCols, numRows> transpose();
@@ -110,7 +116,7 @@ inline Matrix<numRows, numCols>::Matrix()
 
 // Constructor - initialize from array
 template<uint16_t numRows, uint16_t numCols>
-inline Matrix<numRows, numCols>::Matrix(double_t initArr[numRows * numCols])
+inline Matrix<numRows, numCols>::Matrix(const double_t(&initArr)[numRows * numCols])
     : length(numRows* numCols)
 {
     for (uint16_t i = 0; i < length; ++i)
@@ -121,7 +127,7 @@ inline Matrix<numRows, numCols>::Matrix(double_t initArr[numRows * numCols])
 
 // Copy Constructor
 template<uint16_t numRows, uint16_t numCols>
-inline Matrix<numRows, numCols>::Matrix(const Matrix<numRows, numCols>& other)
+inline Matrix<numRows, numCols>::Matrix(const Matrix<numRows, numCols> &other)
 {
     length = other.length;
     for (uint16_t i = 0; i < length; ++i)
@@ -139,7 +145,7 @@ inline Matrix<numRows, numCols>::~Matrix()
 
 // Copy Assignment
 template<uint16_t numRows, uint16_t numCols>
-inline Matrix<numRows, numCols>& Matrix<numRows, numCols>::operator=(const Matrix<numRows, numCols> other)
+inline Matrix<numRows, numCols>& Matrix<numRows, numCols>::operator=(const Matrix<numRows, numCols> &other)
 {
     if (this != &other)
     {
@@ -150,6 +156,26 @@ inline Matrix<numRows, numCols>& Matrix<numRows, numCols>::operator=(const Matri
         }
     }
     return *this;
+}
+
+// Fill the Matrix based on an array
+template<uint16_t numRows, uint16_t numCols>
+inline void Matrix<numRows, numCols>::fill(const double_t (&initArr)[numRows * numCols])
+{
+    for (uint16_t i = 0; i < length; ++i)
+    {
+        matrix[i] = initArr[i];
+    }
+}
+
+// Populate an array with the Matrix values
+template<uint16_t numRows, uint16_t numCols>
+inline void Matrix<numRows, numCols>::toArray(double_t (&arr)[numRows * numCols])
+{
+    for (uint16_t i = 0; i < length; ++i)
+    {
+        arr[i] = matrix[i];
+    }
 }
 
 // Get the value of an element
@@ -246,7 +272,7 @@ inline void Matrix<numRows, numCols>::add(double_t addor)
 
 // Element-wise addition
 template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::add(const Matrix<numRows, numCols> addor)
+inline void Matrix<numRows, numCols>::add(const Matrix<numRows, numCols> &addor)
 {
     for (uint16_t i = 0; i < length; ++i)
     {
@@ -266,7 +292,7 @@ inline void Matrix<numRows, numCols>::multiply(double_t scalar)
 
 // Element-wise Multiplicaiton
 template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::multiply(const Matrix<numRows, numCols> scalar)
+inline void Matrix<numRows, numCols>::multiply(const Matrix<numRows, numCols> &scalar)
 {
     for (uint16_t i = 0; i < length; ++i)
     {
@@ -277,7 +303,7 @@ inline void Matrix<numRows, numCols>::multiply(const Matrix<numRows, numCols> sc
 // Dot-Product Multiplication - Other must have the same number of rows as our columns
 template<uint16_t numRows, uint16_t numCols>
 template<uint16_t otherCols>
-inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matrix<numCols, otherCols> other)
+inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matrix<numCols, otherCols> &other)
 {
     // Self    Other       Result
     // 2x3     3x4         2x4
