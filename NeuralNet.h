@@ -38,8 +38,12 @@ namespace NN
 
     double_t sigmoidDerivative(double_t input)
     {
-        double_t sigInput = sigmoid(input);
-        return (sigInput * (1.0 - sigInput));
+        //double_t sigInput = sigmoid(input);
+        //return (sigInput * (1.0 - sigInput));
+
+        // because the sigmoid funciton is already applied to all value matricies
+        // The sigmoid does not need to also be applied in the derivative
+        return (input * (1.0 - input));
     }
 
     double_t relu(double_t input)
@@ -104,6 +108,9 @@ public:
     // Generate an output array based on an input array
     void guess(const double_t (&inputs)[numInputs], double_t (&outputs)[numOutputs]);
 
+    // Train the Neural net based on an input array and an expected answer array
+    void train(const double_t(&inputs)[numInputs], const double_t(&answer)[numOutputs]);
+
 private:
     // Random Number Generator
     std::mt19937 rng;
@@ -134,6 +141,17 @@ private:
 
     Matrix<numOutputs, 1> outputValues;
 
+    ////////////////////////////////
+    // Back Propagation Matricies //
+    ////////////////////////////////
+    Matrix<numOutputs, 1> answerValues;
+
+    double_t outputArray[numOutputs];
+    Matrix<numOutputs, 1> outputError;
+
+    Matrix<numHidden, numOutputs> hiddenWeightsTransposed;
+    Matrix<numHidden,1> hiddenError;
+
     /////////////////////////////
     // Feed Fordward Functions //
     /////////////////////////////
@@ -142,6 +160,15 @@ private:
 
     // Calculate Output Values based on Hidden
     void hiddenToOutput();
+
+    ////////////////////////////////
+    // Back Propagation Functions //
+    ////////////////////////////////
+    // Calculate output error based on output and answers
+    void calculateOutputError(const double_t(&answer)[numOutputs]);
+
+    // Calculate hidden error based on output error and hidden weights
+    void calculateHiddenError();
 };
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
@@ -171,7 +198,7 @@ inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(std::mt19937 rngIn
         break;
     }
 
-    // Initialize Matricies
+    // Initialize Feedforward Matricies
     inputValues.clear();
     inputWeights.clear();
     inputBias.clear();
@@ -179,6 +206,20 @@ inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(std::mt19937 rngIn
     hiddenValues.clear();
     hiddenWeights.clear();
     hiddenBias.clear();
+
+    outputValues.clear();
+
+    // Initialize back progagation Matricies
+    answerValues.clear();
+    
+    for (uint16_t i = 0; i < numOutputs; ++i)
+    {
+        outputArray[i] = 0.0;
+    }
+    outputError.clear();
+
+    hiddenWeightsTransposed.clear();
+    hiddenError.clear();
 }
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
@@ -227,6 +268,20 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::guess(const double_t(&i
 
 }
 
+// Train the Neural net based on an input array and an expected answer array
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const double_t(&inputs)[numInputs], const double_t(&answer)[numOutputs])
+{
+    // Feed Inputs forward through the Neural Net
+    guess(inputs, outputArray);
+
+    // Calculate output Error
+    calculateOutputError(answer);
+
+    // Calculate hidden Error
+    calculateHiddenError();
+}
+
 /////////////////////////////
 // Feed Fordward Functions //
 /////////////////////////////
@@ -235,7 +290,7 @@ template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline void NeuralNet<numInputs, numHidden, numOutputs>::inputToHidden()
 {
     // Multiply Input Values by Input Weights
-    hiddenValues = inputWeights.multiply(inputValues);
+    hiddenValues = inputWeights.matMultiply(inputValues);
 
     // Add Input Bias
     hiddenValues.add(inputBias);
@@ -249,13 +304,34 @@ template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline void NeuralNet<numInputs, numHidden, numOutputs>::hiddenToOutput()
 {
     // Multiply Hidden values by hidden weights
-    outputValues = hiddenWeights.multiply(hiddenValues);
+    outputValues = hiddenWeights.matMultiply(hiddenValues);
 
     // Add hidden bias
     outputValues.add(hiddenBias);
 
     // Apply activation funciton
     outputValues.applyFunction(actFunct);
+}
+
+// Calculate output error based on output and answers
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateOutputError(const double_t(&answer)[numOutputs])
+{
+    // Error = Answers - Outputs
+    outputError.fill(answer);
+
+    outputError.sub(outputValues);
+}
+
+// Calculate hidden error based on output error and hidden weights
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateHiddenError()
+{
+    // Transpose Hidden Weights
+    hiddenWeightsTransposed = hiddenWeights.transpose();
+
+    // Calculate Hidden Error
+    hiddenError = hiddenWeightsTransposed.matMultiply(outputError);
 }
 #endif
 

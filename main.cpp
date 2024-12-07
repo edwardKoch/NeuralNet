@@ -36,12 +36,24 @@ int main()
     // 38  44  50  56
     // 83  98  113  128
     double_t m3Vals[8] = { 38, 44, 50, 56, 83, 98, 113, 128};
-    Matrix<2, 4> m3 = m1.multiply(m2);
+    Matrix<2, 4> m3 = m1.matMultiply(m2);
 
     m3.print();
 
     Matrix<4, 2> m4 = m3.transpose();
     m4.print();
+
+    // Proof that there is ambiguity in Matrix Multiplication when the dimensions are the same
+    Matrix<2, 2> m5({ 1, 2, 3, 4 });
+    Matrix<2, 2> m6({ 1, 2, 3, 4 });
+
+    m5.multiply(m6);
+
+    m5.print();
+
+    Matrix<2, 2> m7 = m5.matMultiply(m6);
+    m7.print();
+
 
     //////////////////////
     // Neural Network
@@ -56,8 +68,15 @@ int main()
 
     double_t input[2] = { 1, 2 };
     double_t output[2] = { 0, 0 };
+    double_t answer[2] = { 1, 2 };
 
     brain.randomize(-1.0, 1.0);
+
+    brain.guess(input, output);
+
+    printf("[%f, %f ]\n", output[0], output[1]);
+
+    brain.train(input, answer);
 
     brain.guess(input, output);
 
