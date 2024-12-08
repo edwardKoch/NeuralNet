@@ -109,13 +109,16 @@ public:
     void guess(const double_t (&inputs)[numInputs], double_t (&outputs)[numOutputs]);
 
     // Train the Neural net based on an input array and an expected answer array
-    void train(const double_t(&inputs)[numInputs], const double_t(&answer)[numOutputs]);
+    void train(const double_t(&inputs)[numInputs], const double_t(&answers)[numOutputs]);
+
+    // Train the Neural net based on many inputs and answers - using stochastic batches
+    void train(const double_t(*inputs)[numInputs], const double_t(*answers)[numOutputs], uint16_t numRows, uint16_t batchSize);
 
     // Get the largest error between a guessed output and a given answer
-    double_t check(const double_t(&inputs)[numInputs], const double_t(&answer)[numOutputs]);
+    double_t test(const double_t(&inputs)[numInputs], const double_t(&answers)[numOutputs]);
 
     // Get the largest error between a guessed output to every element in an input set and a given answer set
-    double_t check(const double_t(*inputs)[numInputs], const double_t(*answer)[numOutputs], uint16_t numRows);
+    double_t test(const double_t(*inputs)[numInputs], const double_t(*answers)[numOutputs], uint16_t numRows);
 
     // Print out the Weights and Bias of the Neural Net
     void print();
@@ -123,7 +126,6 @@ public:
 private:
     // Random Number Generator
     std::mt19937 rng;
-    std::uniform_real_distribution<double_t> uniformDist;
 
     // Activation Function to use
     NN::Activations activationFunciton;
@@ -184,13 +186,13 @@ private:
     // Back Propagation Functions //
     ////////////////////////////////
     // Calculate output error based on output and answers
-    void calculateOutputError(const double_t(&answer)[numOutputs]);
+    void calculateOutputError(const double_t(&answers)[numOutputs]);
 
     // Calculate output Gradient
     void calculateOutputGradient();
 
     // Calculate and apply the hidden weight and bias adjustments
-    void calculateHiddenDelta(const double_t(&answer)[numOutputs]);
+    void calculateHiddenDelta(const double_t(&answers)[numOutputs]);
 
     // Calculate hidden error based on output error and hidden weights
     void calculateHiddenError();
@@ -207,7 +209,6 @@ private:
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline NeuralNet<numInputs, numHidden, numOutputs>::NeuralNet(std::mt19937 rngIn, NN::Activations activation, double_t learningRate)
     : rng(rngIn),
-      uniformDist(-1.0, 1.0),
       activationFunciton(activation),
       actFunct(0),
       learningRate(learningRate)
@@ -303,27 +304,43 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::guess(const double_t(&i
 
 // Train the Neural net based on an input array and an expected answer array
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const double_t(&inputs)[numInputs], const double_t(&answer)[numOutputs])
+inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const double_t(&inputs)[numInputs], const double_t(&answers)[numOutputs])
 {
     // Feed Inputs forward through the Neural Net
     guess(inputs, outputArray);
 
     // Calculate and Apply Hidden Weight and bias  Adjustment - Based on expected output
-    calculateHiddenDelta(answer);
+    calculateHiddenDelta(answers);
 
     // Calculate and Apply Input Weight and bias  Adjustment - Based on hidden layer error
     calculateInputDelta();
 }
 
+// Train the Neural net based on many inputs and answers - using stochastic batches
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const double_t(*inputs)[numInputs], const double_t(*answers)[numOutputs], uint16_t numRows, uint16_t batchSize)
+{
+    uint16_t index = 0;
+
+    std::uniform_real_distribution<float> uniformDist(0, numRows);
+
+    for (uint16_t i = 0; i < batchSize; ++i)
+    {
+        index = uniformDist(rng);
+
+        train(inputs[index], answers[index]);
+    }
+}
+
 // Get the largest error between a guessed output and a given answer
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-inline double_t NeuralNet<numInputs, numHidden, numOutputs>::check(const double_t(&inputs)[numInputs], const double_t(&answer)[numOutputs])
+inline double_t NeuralNet<numInputs, numHidden, numOutputs>::test(const double_t(&inputs)[numInputs], const double_t(&answers)[numOutputs])
 {
     // Feed Inputs forward through the Neural Net
     guess(inputs, outputArray);
 
     // Calculate the output Error
-    calculateOutputError(answer);
+    calculateOutputError(answers);
 
     outputError.toArray(outputArray);
 
@@ -342,14 +359,14 @@ inline double_t NeuralNet<numInputs, numHidden, numOutputs>::check(const double_
 
 // Get the largest error between a guessed output to every element in an input set and a given answer set
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-inline double_t NeuralNet<numInputs, numHidden, numOutputs>::check(const double_t(*inputs)[numInputs], const double_t(*answer)[numOutputs], uint16_t numRows)
+inline double_t NeuralNet<numInputs, numHidden, numOutputs>::test(const double_t(*inputs)[numInputs], const double_t(*answers)[numOutputs], uint16_t numRows)
 {
     double_t largestError = 0.0;
 
     double_t currentError = 0.0;
     for (int i = 0; i < numRows; ++i)
     {
-        currentError = check(inputs[i], answer[i]);
+        currentError = test(inputs[i], answers[i]);
 
         if (currentError > largestError)
         {
@@ -410,10 +427,10 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::hiddenToOutput()
 
 // Calculate output error based on output and answers
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateOutputError(const double_t(&answer)[numOutputs])
+inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateOutputError(const double_t(&answers)[numOutputs])
 {
     // Error = Answers - Outputs
-    outputError.fill(answer);
+    outputError.fill(answers);
 
     outputError.sub(outputValues);
 }
@@ -436,10 +453,10 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateOutputGradient
 
 // Calculate and Apply the hidden wieght adjustments
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
-inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateHiddenDelta(const double_t(&answer)[numOutputs])
+inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateHiddenDelta(const double_t(&answers)[numOutputs])
 {
     // Calculate the output Error
-    calculateOutputError(answer);
+    calculateOutputError(answers);
 
     // Calculate output Gradients
     calculateOutputGradient();

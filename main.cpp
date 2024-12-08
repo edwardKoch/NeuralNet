@@ -58,14 +58,17 @@ int main()
 
     brain.print();
 
-    for (int i = 0; i < 10000000; ++i)
+    uint32_t numTraining = 600000;
+    uint16_t batchSize = 100;
+    uint32_t numCycles = numTraining / batchSize;
+
+    for (uint32_t i = 0; i < numCycles; ++i)
     {
-        int iMod = i % 4;
-        brain.train(input[iMod], answer[iMod]);
+        brain.train(&input[0], &answer[0], 4, batchSize);
 
         double_t threshold = 0.05;
 
-        double_t error = brain.check(&input[0], &answer[0], 4);
+        double_t error = brain.test(&input[0], &answer[0], 4);
 
         if (error < threshold)
         {
