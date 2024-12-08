@@ -146,11 +146,23 @@ private:
     ////////////////////////////////
     Matrix<numOutputs, 1> answerValues;
 
+    // Error Calculation
     double_t outputArray[numOutputs];
     Matrix<numOutputs, 1> outputError;
 
     Matrix<numHidden, numOutputs> hiddenWeightsTransposed;
-    Matrix<numHidden,1> hiddenError;
+    Matrix<numHidden, 1> hiddenError;
+
+    // Gradient Calculation
+    Matrix<numOutputs, 1> outputGradient;
+    Matrix<1, numHidden> hiddenValuesTransposed;
+    Matrix<numOutputs, numHidden> hiddenWeightsAdjustment;
+
+    Matrix<numHidden, 1> hiddenGradient;
+    Matrix<1, numInputs> inputValuesTransposed;
+    Matrix<numInputs, numHidden> inputWeightsAdjustment;
+
+
 
     /////////////////////////////
     // Feed Fordward Functions //
@@ -167,8 +179,22 @@ private:
     // Calculate output error based on output and answers
     void calculateOutputError(const double_t(&answer)[numOutputs]);
 
+    // Calculate output Gradient
+    void calculateOutputGradient();
+
+    // Calculate the hidden weight adjustments
+    void calculateHiddenWeightDelta(const double_t(&answer)[numOutputs]);
+
     // Calculate hidden error based on output error and hidden weights
     void calculateHiddenError();
+
+    // Calculate hidden gradient
+    void calculateHiddenGradient();
+
+    // Calculate input weight adjustments
+    void calculateInputWeightDelta();
+
+
 };
 
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
@@ -275,11 +301,13 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const double_t(&i
     // Feed Inputs forward through the Neural Net
     guess(inputs, outputArray);
 
-    // Calculate output Error
-    calculateOutputError(answer);
+    // Calculate and Apply Hidden Weight Adjustment - Based on expected output
+    calculateHiddenWeightDelta(answer);
 
-    // Calculate hidden Error
-    calculateHiddenError();
+    // Calculate and Apply Input Weight Adjustment - Based on hidden layer error
+    calculateInputWeightDelta();
+
+
 }
 
 /////////////////////////////
@@ -290,7 +318,7 @@ template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline void NeuralNet<numInputs, numHidden, numOutputs>::inputToHidden()
 {
     // Multiply Input Values by Input Weights
-    hiddenValues = inputWeights.matMultiply(inputValues);
+    hiddenValues = inputWeights.multiply(inputValues);
 
     // Add Input Bias
     hiddenValues.add(inputBias);
@@ -304,7 +332,7 @@ template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline void NeuralNet<numInputs, numHidden, numOutputs>::hiddenToOutput()
 {
     // Multiply Hidden values by hidden weights
-    outputValues = hiddenWeights.matMultiply(hiddenValues);
+    outputValues = hiddenWeights.multiply(hiddenValues);
 
     // Add hidden bias
     outputValues.add(hiddenBias);
@@ -323,6 +351,40 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateOutputError(co
     outputError.sub(outputValues);
 }
 
+// Calculate output Gradient
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateOutputGradient()
+{
+    outputGradient = outputValues;
+
+    // Output * (1 - Output)
+    outputGradient.applyFunction(actFunctDeriv);
+
+    // Error times output derivative
+    outputGradient.scale(outputError);
+
+    // Scale gradient by learning rate
+    outputGradient.scale(learningRate);
+}
+
+// Calculate and Apply the hidden wieght adjustments
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateHiddenWeightDelta(const double_t(&answer)[numOutputs])
+{
+    // Calculate the output Error
+    calculateOutputError(answer);
+
+    // Calculate output Gradients
+    calculateOutputGradient();
+
+    // Multiply Gradient by Transposed Hidden Values to get Delta Hidden Weights
+    hiddenValuesTransposed = hiddenValues.transpose();
+    hiddenWeightsAdjustment = outputGradient.multiply(hiddenValuesTransposed);
+
+    // Apply Hidden Weight Adjustments
+    hiddenWeights.add(hiddenWeightsAdjustment);
+}
+
 // Calculate hidden error based on output error and hidden weights
 template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateHiddenError()
@@ -331,7 +393,41 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateHiddenError()
     hiddenWeightsTransposed = hiddenWeights.transpose();
 
     // Calculate Hidden Error
-    hiddenError = hiddenWeightsTransposed.matMultiply(outputError);
+    hiddenError = hiddenWeightsTransposed.multiply(outputError);
+}
+
+// Calculate hidden gradient
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateHiddenGradient()
+{
+    hiddenGradient = hiddenValues;
+
+    // Hidden * (1 - Hidden)
+    hiddenGradient.applyFunction(actFunctDeriv);
+
+    // Error times hidden derivative
+    hiddenGradient.scale(hiddenError);
+
+    // Scale gradient by learning rate
+    hiddenGradient.scale(learningRate);
+}
+
+// Calculate and Apply  input weight adjustments
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateInputWeightDelta()
+{
+    // Calculate the Hidden Error
+    calculateHiddenError();
+
+    // Calculate the Hidden Gradients
+    calculateHiddenGradient();
+
+    // Multiply Gradient by Transposed Hidden Values to get Delta Hidden Weights
+    inputValuesTransposed = inputValues.transpose();
+    inputWeightsAdjustment = hiddenGradient.multiply(inputValuesTransposed);
+
+    // Apply Hidden Weight Adjustments
+    inputWeights.add(inputWeightsAdjustment);
 }
 #endif
 

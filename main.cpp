@@ -36,7 +36,7 @@ int main()
     // 38  44  50  56
     // 83  98  113  128
     double_t m3Vals[8] = { 38, 44, 50, 56, 83, 98, 113, 128};
-    Matrix<2, 4> m3 = m1.matMultiply(m2);
+    Matrix<2, 4> m3 = m1.multiply(m2);
 
     m3.print();
 
@@ -51,7 +51,7 @@ int main()
 
     m5.print();
 
-    Matrix<2, 2> m7 = m5.matMultiply(m6);
+    Matrix<2, 2> m7 = m5.multiply(m6);
     m7.print();
 
 
@@ -64,11 +64,11 @@ int main()
 
     NeuralNet<2, 2, 2> brain(rng,    // Random Number Generator
         NN::Activations::SIGMOID, // Activation Function
-        0.001); // Learning Rate
+        0.01); // Learning Rate
 
-    double_t input[2] = { 1, 2 };
+    double_t input[2] = { 0, 0 };
     double_t output[2] = { 0, 0 };
-    double_t answer[2] = { 1, 2 };
+    double_t answer[2] = { -1, 1 };
 
     brain.randomize(-1.0, 1.0);
 
@@ -76,7 +76,10 @@ int main()
 
     printf("[%f, %f ]\n", output[0], output[1]);
 
-    brain.train(input, answer);
+    for (int i = 0; i < 100; ++i)
+    {
+        brain.train(input, answer);
+    }
 
     brain.guess(input, output);
 

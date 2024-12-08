@@ -82,14 +82,14 @@ public:
     void sub(const Matrix<numRows, numCols>& addor);
 
     // Scalar Multiplicaiton
-    void multiply(double_t scalar);
+    void scale(double_t scalar);
 
     // Element-wise Multiplicaiton
-    void multiply(const Matrix<numRows, numCols> &scalar);
+    void scale(const Matrix<numRows, numCols> &scalar);
 
     // Dot-Product Multiplication - Other must have the same number of rows as our columns
     template<uint16_t otherCols>
-    Matrix<numRows, otherCols> matMultiply(const Matrix<numCols, otherCols> &other);
+    Matrix<numRows, otherCols> multiply(const Matrix<numCols, otherCols> &other);
 
     // Transpose the Matrix
     Matrix<numCols, numRows> transpose();
@@ -308,7 +308,7 @@ inline void Matrix<numRows, numCols>::sub(const Matrix<numRows, numCols>& addor)
 
 // Scalar Multiplicaiton
 template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::multiply(double_t scalar)
+inline void Matrix<numRows, numCols>::scale(double_t scalar)
 {
     for (uint16_t i = 0; i < length; ++i)
     {
@@ -318,7 +318,7 @@ inline void Matrix<numRows, numCols>::multiply(double_t scalar)
 
 // Element-wise Multiplicaiton
 template<uint16_t numRows, uint16_t numCols>
-inline void Matrix<numRows, numCols>::multiply(const Matrix<numRows, numCols> &scalar)
+inline void Matrix<numRows, numCols>::scale(const Matrix<numRows, numCols> &scalar)
 {
     for (uint16_t i = 0; i < length; ++i)
     {
@@ -329,7 +329,7 @@ inline void Matrix<numRows, numCols>::multiply(const Matrix<numRows, numCols> &s
 // Dot-Product Multiplication - Other must have the same number of rows as our columns
 template<uint16_t numRows, uint16_t numCols>
 template<uint16_t otherCols>
-inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::matMultiply(const Matrix<numCols, otherCols> &other)
+inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matrix<numCols, otherCols> &other)
 {
     // Self    Other       Result
     // 2x3     3x4         2x4
