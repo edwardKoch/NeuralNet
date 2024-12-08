@@ -56,9 +56,30 @@ int main()
         printf("[%f, %f ]\n", output[0], output[1]);
     }
 
+    brain.print();
+
     for (int i = 0; i < 10000000; ++i)
     {
-        brain.train(input[i % 4], answer[i % 4]);
+        int iMod = i % 4;
+        brain.train(input[iMod], answer[iMod]);
+
+        double_t threshold = 0.05;
+        bool doneTraining = true;
+        for (int j = 0; j < 4; ++j)
+        {
+            brain.guess(input[j], output);
+            if (std::abs(output[0] - answer[j][0]) > threshold ||
+                std::abs(output[1] - answer[j][1]) > threshold)
+            {
+                doneTraining = false;
+            }
+        }
+        if (doneTraining)
+        {
+            printf("Confident within %.02f after %d cycles", threshold, i);
+            break;
+        }
+
     }
 
     printf("\nAfter:\n");
