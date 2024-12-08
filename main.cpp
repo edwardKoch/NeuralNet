@@ -9,7 +9,7 @@ HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 #include "NeuralNet.h"
 
 // Global RNG
-std::mt19937 rng(0);//(uint32_t)std::time(0));
+std::mt19937 rng((uint32_t)std::time(0));
 
 int main()
 {
@@ -56,7 +56,7 @@ int main()
         printf("[%f, %f ]\n", output[0], output[1]);
     }
 
-    for (int i = 0; i < 1000000; ++i)
+    for (int i = 0; i < 10000000; ++i)
     {
         brain.train(input[i % 4], answer[i % 4]);
     }
@@ -68,6 +68,5 @@ int main()
         printf("[%f, %f ]\n", output[0], output[1]);
     }
 
-    
-
+    brain.print();
 }

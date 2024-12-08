@@ -111,6 +111,9 @@ public:
     // Train the Neural net based on an input array and an expected answer array
     void train(const double_t(&inputs)[numInputs], const double_t(&answer)[numOutputs]);
 
+    // Print out the Weights and Bias of the Neural Net
+    void print();
+
 private:
     // Random Number Generator
     std::mt19937 rng;
@@ -304,8 +307,23 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const double_t(&i
 
     // Calculate and Apply Input Weight and bias  Adjustment - Based on hidden layer error
     calculateInputDelta();
+}
 
+// Print out the Weights and Bias of the Neural Net
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline void NeuralNet<numInputs, numHidden, numOutputs>::print()
+{
+    printf("Input Weights:\n");
+    inputWeights.print();
 
+    printf("Input Bias:\n");
+    inputBias.print();
+
+    printf("Hidden Weights:\n");
+    hiddenWeights.print();
+
+    printf("Hidden Bias:\n");
+    hiddenBias.print();
 }
 
 /////////////////////////////
