@@ -111,6 +111,12 @@ public:
     // Train the Neural net based on an input array and an expected answer array
     void train(const double_t(&inputs)[numInputs], const double_t(&answer)[numOutputs]);
 
+    // Get the largest error between a guessed output and a given answer
+    double_t check(const double_t(&inputs)[numInputs], const double_t(&answer)[numOutputs]);
+
+    // Get the largest error between a guessed output to every element in an input set and a given answer set
+    double_t check(const double_t(*inputs)[numInputs], const double_t(*answer)[numOutputs], uint16_t numRows);
+
     // Print out the Weights and Bias of the Neural Net
     void print();
 
@@ -307,6 +313,51 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::train(const double_t(&i
 
     // Calculate and Apply Input Weight and bias  Adjustment - Based on hidden layer error
     calculateInputDelta();
+}
+
+// Get the largest error between a guessed output and a given answer
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline double_t NeuralNet<numInputs, numHidden, numOutputs>::check(const double_t(&inputs)[numInputs], const double_t(&answer)[numOutputs])
+{
+    // Feed Inputs forward through the Neural Net
+    guess(inputs, outputArray);
+
+    // Calculate the output Error
+    calculateOutputError(answer);
+
+    outputError.toArray(outputArray);
+
+    double_t largestError = 0.0;
+
+    for (int i = 0; i < numOutputs; ++i)
+    {
+        if (std::abs(outputArray[i]) > largestError)
+        {
+            largestError = outputArray[i];
+        }
+    }
+
+    return largestError;
+}
+
+// Get the largest error between a guessed output to every element in an input set and a given answer set
+template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
+inline double_t NeuralNet<numInputs, numHidden, numOutputs>::check(const double_t(*inputs)[numInputs], const double_t(*answer)[numOutputs], uint16_t numRows)
+{
+    double_t largestError = 0.0;
+
+    double_t currentError = 0.0;
+    for (int i = 0; i < numRows; ++i)
+    {
+        currentError = check(inputs[i], answer[i]);
+
+        if (currentError > largestError)
+        {
+            largestError = currentError;
+        }
+    }
+
+    return largestError;
 }
 
 // Print out the Weights and Bias of the Neural Net

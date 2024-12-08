@@ -64,19 +64,12 @@ int main()
         brain.train(input[iMod], answer[iMod]);
 
         double_t threshold = 0.05;
-        bool doneTraining = true;
-        for (int j = 0; j < 4; ++j)
+
+        double_t error = brain.check(&input[0], &answer[0], 4);
+
+        if (error < threshold)
         {
-            brain.guess(input[j], output);
-            if (std::abs(output[0] - answer[j][0]) > threshold ||
-                std::abs(output[1] - answer[j][1]) > threshold)
-            {
-                doneTraining = false;
-            }
-        }
-        if (doneTraining)
-        {
-            printf("Confident within %.02f after %d cycles", threshold, i);
+            printf("Confident within %.03f with error %f after %d cycles", threshold, error, i);
             break;
         }
 
