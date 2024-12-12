@@ -171,7 +171,7 @@ private:
 
     Matrix<numHidden, 1> hiddenGradient;
     Matrix<1, numInputs> inputValuesTransposed;
-    Matrix<numInputs, numHidden> inputWeightsAdjustment;
+    Matrix<numHidden, numInputs> inputWeightsAdjustment;
 
     /////////////////////////////
     // Feed Fordward Functions //
@@ -350,7 +350,7 @@ inline double_t NeuralNet<numInputs, numHidden, numOutputs>::test(const double_t
     {
         if (std::abs(outputArray[i]) > largestError)
         {
-            largestError = outputArray[i];
+            largestError = std::abs(outputArray[i]);
         }
     }
 

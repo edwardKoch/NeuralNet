@@ -25,20 +25,18 @@ int main()
     // Random Number Generator
     std::uniform_real_distribution<float> uniformDist(0.0, 3.9);
 
-    NeuralNet<2, 2, 2> brain(rng,    // Random Number Generator
+    NeuralNet<2, 4, 2> brain(rng,    // Random Number Generator
         NN::Activations::SIGMOID, // Activation Function
         0.01); // Learning Rate
 
     // XOR Training Set
-    double_t input[4][2] = {
-                            { 0, 0 },
+    double_t input[4][2] = {{ 0, 0 },
                             { 0, 1 },
                             { 1, 0 },
                             { 1, 1 } };
 
     // 2 Element answer where index 0 is true and index 1 is false
-    double_t answer[4][2] = {
-                             { 0, 1 },
+    double_t answer[4][2] = {{ 0, 1 },
                              { 1, 0 },
                              { 1, 0 },
                              { 0, 1 } };
@@ -46,7 +44,6 @@ int main()
     
     double_t output[2] = { 0, 0 };
     
-
     brain.randomize(-1.0, 1.0);
 
     printf("Before:\n");
