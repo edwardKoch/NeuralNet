@@ -89,10 +89,10 @@ public:
 
     // Dot-Product Multiplication - Other must have the same number of rows as our columns
     template<uint16_t otherCols>
-    Matrix<numRows, otherCols> multiply(const Matrix<numCols, otherCols> &other);
+    void multiply(const Matrix<numCols, otherCols> &other, Matrix<numRows, otherCols>& result);
 
     // Transpose the Matrix
-    Matrix<numCols, numRows> transpose();
+    void transpose(Matrix<numCols, numRows>& result);
 
 private:
     // Templated Matrix Friend
@@ -100,21 +100,20 @@ private:
     friend class Matrix;
 
     // Length of 1D array - Rows * Cols
-    uint16_t length;
+    static const uint64_t length = numRows * numCols;
 
     // matrix representation - 1D array for memory access 
-    double_t matrix[numRows * numCols];
+    double_t matrix[length];
 
     // Map 2D coordinates to 1D array index
-    uint16_t getIndex(uint16_t row, uint16_t col) const;
+    uint64_t getIndex(uint16_t row, uint16_t col) const;
 };
 
 // Constructor - initialize to 0
 template<uint16_t numRows, uint16_t numCols>
 inline Matrix<numRows, numCols>::Matrix()
-    : length(numRows * numCols)
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] = 0.0;
     }
@@ -125,7 +124,7 @@ template<uint16_t numRows, uint16_t numCols>
 inline Matrix<numRows, numCols>::Matrix(const double_t(&initArr)[numRows * numCols])
     : length(numRows* numCols)
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] = initArr[i];
     }
@@ -135,8 +134,7 @@ inline Matrix<numRows, numCols>::Matrix(const double_t(&initArr)[numRows * numCo
 template<uint16_t numRows, uint16_t numCols>
 inline Matrix<numRows, numCols>::Matrix(const Matrix<numRows, numCols> &other)
 {
-    length = other.length;
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] = other.matrix[i];
     }
@@ -155,8 +153,7 @@ inline Matrix<numRows, numCols>& Matrix<numRows, numCols>::operator=(const Matri
 {
     if (this != &other)
     {
-        length = other.length;
-        for (uint16_t i = 0; i < length; ++i)
+        for (uint64_t i = 0; i < length; ++i)
         {
             matrix[i] = other.matrix[i];
         }
@@ -168,7 +165,7 @@ inline Matrix<numRows, numCols>& Matrix<numRows, numCols>::operator=(const Matri
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::fill(const double_t (&initArr)[numRows * numCols])
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] = initArr[i];
     }
@@ -178,7 +175,7 @@ inline void Matrix<numRows, numCols>::fill(const double_t (&initArr)[numRows * n
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::toArray(double_t (&arr)[numRows * numCols])
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         arr[i] = matrix[i];
     }
@@ -188,11 +185,11 @@ inline void Matrix<numRows, numCols>::toArray(double_t (&arr)[numRows * numCols]
 template<uint16_t numRows, uint16_t numCols>
 inline double_t Matrix<numRows, numCols>::getElement(uint16_t row, uint16_t col) const
 { 
-    uint16_t index = getIndex(row, col);
+    uint64_t index = getIndex(row, col);
     if (index >= length)
     {
 #if _DEBUG
-        printf("Matrix<%u, %u> - Get Element: Invalid Index %u (r%u, c%u)\n", numRows, numCols, index, row, col);
+        printf("Matrix<%u, %u> - Get Element: Invalid Index %llu (r%u, c%u)\n", numRows, numCols, index, row, col);
 #endif
         return 0.0;
     }
@@ -205,11 +202,11 @@ inline double_t Matrix<numRows, numCols>::getElement(uint16_t row, uint16_t col)
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::setElement(uint16_t row, uint16_t col, double_t value)
 {
-    uint16_t index = getIndex(row, col);
+    uint64_t index = getIndex(row, col);
     if (index >= length)
     {
 #if _DEBUG
-        printf("Matrix<%u, %u> - Set Element: Invalid Index %u (r%u, c%u)\n", numRows, numCols, index, row, col);
+        printf("Matrix<%u, %u> - Set Element: Invalid Index %llu (r%u, c%u)\n", numRows, numCols, index, row, col);
 #endif
         return;
     }
@@ -221,7 +218,7 @@ inline void Matrix<numRows, numCols>::setElement(uint16_t row, uint16_t col, dou
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::clear()
 {
-    for (int i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] = 0.0;
     }
@@ -233,7 +230,7 @@ inline void  Matrix<numRows, numCols>::randomize(std::mt19937 &rng, double_t min
 {
     std::uniform_real_distribution<double_t> uniformDist(min, max);
 
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] = uniformDist(rng);
     }
@@ -243,7 +240,7 @@ inline void  Matrix<numRows, numCols>::randomize(std::mt19937 &rng, double_t min
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::applyFunction(double_t (*func)(double_t))
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] = func(matrix[i]);
     }
@@ -257,7 +254,7 @@ inline void Matrix<numRows, numCols>::print()
     {
         for (uint16_t col = 0; col < numCols; ++col)
         {
-            uint16_t index = getIndex(row, col);
+            uint64_t index = getIndex(row, col);
 
             printf("%f ", matrix[index]);
         }
@@ -270,7 +267,7 @@ inline void Matrix<numRows, numCols>::print()
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::add(double_t addor)
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] += addor;
     }
@@ -280,7 +277,7 @@ inline void Matrix<numRows, numCols>::add(double_t addor)
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::add(const Matrix<numRows, numCols> &addor)
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] += addor.matrix[i];
     }
@@ -290,7 +287,7 @@ inline void Matrix<numRows, numCols>::add(const Matrix<numRows, numCols> &addor)
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::sub(double_t addor)
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] -= addor;
     }
@@ -300,7 +297,7 @@ inline void Matrix<numRows, numCols>::sub(double_t addor)
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::sub(const Matrix<numRows, numCols>& addor)
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] -= addor.matrix[i];
     }
@@ -310,7 +307,7 @@ inline void Matrix<numRows, numCols>::sub(const Matrix<numRows, numCols>& addor)
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::scale(double_t scalar)
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] *= scalar;
     }
@@ -320,16 +317,17 @@ inline void Matrix<numRows, numCols>::scale(double_t scalar)
 template<uint16_t numRows, uint16_t numCols>
 inline void Matrix<numRows, numCols>::scale(const Matrix<numRows, numCols> &scalar)
 {
-    for (uint16_t i = 0; i < length; ++i)
+    for (uint64_t i = 0; i < length; ++i)
     {
         matrix[i] *= scalar.matrix[i];
     }
 }
 
 // Dot-Product Multiplication - Other must have the same number of rows as our columns
+// Stores result in provided matrix
 template<uint16_t numRows, uint16_t numCols>
 template<uint16_t otherCols>
-inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matrix<numCols, otherCols> &other)
+inline void Matrix<numRows, numCols>::multiply(const Matrix<numCols, otherCols> &other, Matrix<numRows, otherCols> &result)
 {
     // Self    Other       Result
     // 2x3     3x4         2x4
@@ -339,11 +337,11 @@ inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matri
     //                     (00,00 + 01,10 + 02,20) (00,01 + 01,11 + 02,21) ... (00,03 + 01,13 + 02,23)
     //                     (10,00 + 11,10 + 12,20) (10,01 + 11,11 + 12,21) ... (10,03 + 11,13 + 12,23)
 
-    Matrix<numRows, otherCols> result;
+    result.clear();
 
     // Temp Variables
     double_t value = 0;
-    uint16_t myIdx = 0;
+    uint64_t myIdx = 0;
 
     // For each row in the resulting Matrix
     for (uint16_t resRow = 0; resRow < numRows; ++resRow)
@@ -366,15 +364,14 @@ inline Matrix<numRows, otherCols> Matrix<numRows, numCols>::multiply(const Matri
             result.setElement(resRow, resCol, value);
         }
     }
-
-    return result;
 }
 
 // Transpose the Matrix
+// Stores result in provided matrix
 template<uint16_t numRows, uint16_t numCols>
-inline Matrix<numCols, numRows> Matrix<numRows, numCols>::transpose()
+inline void Matrix<numRows, numCols>::transpose(Matrix<numCols, numRows>& result)
 {
-    Matrix<numCols, numRows> result;
+    result.clear();
 
     // For each row in the starting Matrix
     for (uint16_t row = 0; row < numRows; ++row)
@@ -386,15 +383,13 @@ inline Matrix<numCols, numRows> Matrix<numRows, numCols>::transpose()
             result.setElement(col, row, getElement(row, col));
         }
     }
-
-    return result;
 }
 
 template<uint16_t numRows, uint16_t numCols>
-inline uint16_t Matrix<numRows, numCols>::getIndex(uint16_t row, uint16_t col) const
+inline uint64_t Matrix<numRows, numCols>::getIndex(uint16_t row, uint16_t col) const
 {
     // Map 2D coordinates to 1D array index
-    return row * numCols + col;
+    return (uint64_t)row * (uint64_t)numCols + (uint64_t)col;
 }
 
 #endif

@@ -8,6 +8,8 @@ HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 #include "Matrix.h"
 #include "NeuralNet.h"
 
+#include "minstTest.h"
+
 // Global RNG
 std::mt19937 rng((uint32_t)std::time(0));
 
@@ -21,7 +23,9 @@ int main()
     //////////////////////
     // Neural Network
     //////////////////////
+    minstMain();
     
+    /*
     // Random Number Generator
     std::uniform_real_distribution<float> uniformDist(0.0, 3.9);
 
@@ -83,4 +87,5 @@ int main()
     }
 
     brain.print();
+    */
 }

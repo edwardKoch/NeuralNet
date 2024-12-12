@@ -402,7 +402,7 @@ template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline void NeuralNet<numInputs, numHidden, numOutputs>::inputToHidden()
 {
     // Multiply Input Values by Input Weights
-    hiddenValues = inputWeights.multiply(inputValues);
+    inputWeights.multiply(inputValues, hiddenValues);
 
     // Add Input Bias
     hiddenValues.add(inputBias);
@@ -416,7 +416,7 @@ template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline void NeuralNet<numInputs, numHidden, numOutputs>::hiddenToOutput()
 {
     // Multiply Hidden values by hidden weights
-    outputValues = hiddenWeights.multiply(hiddenValues);
+    hiddenWeights.multiply(hiddenValues, outputValues);
 
     // Add hidden bias
     outputValues.add(hiddenBias);
@@ -462,8 +462,8 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateHiddenDelta(co
     calculateOutputGradient();
 
     // Multiply Gradient by Transposed Hidden Values to get Delta Hidden Weights
-    hiddenValuesTransposed = hiddenValues.transpose();
-    hiddenWeightsAdjustment = outputGradient.multiply(hiddenValuesTransposed);
+    hiddenValues.transpose(hiddenValuesTransposed);
+    outputGradient.multiply(hiddenValuesTransposed, hiddenWeightsAdjustment);
 
     // Apply Hidden Weight Adjustments
     hiddenWeights.add(hiddenWeightsAdjustment);
@@ -477,10 +477,10 @@ template <uint16_t numInputs, uint16_t numHidden, uint16_t numOutputs>
 inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateHiddenError()
 {
     // Transpose Hidden Weights
-    hiddenWeightsTransposed = hiddenWeights.transpose();
+    hiddenWeights.transpose(hiddenWeightsTransposed);
 
     // Calculate Hidden Error
-    hiddenError = hiddenWeightsTransposed.multiply(outputError);
+    hiddenWeightsTransposed.multiply(outputError, hiddenError);
 }
 
 // Calculate hidden gradient
@@ -510,8 +510,8 @@ inline void NeuralNet<numInputs, numHidden, numOutputs>::calculateInputDelta()
     calculateHiddenGradient();
 
     // Multiply Gradient by Transposed Input Values to get Delta Input Weights
-    inputValuesTransposed = inputValues.transpose();
-    inputWeightsAdjustment = hiddenGradient.multiply(inputValuesTransposed);
+    inputValues.transpose(inputValuesTransposed);
+    hiddenGradient.multiply(inputValuesTransposed, inputWeightsAdjustment);
 
     // Apply Input Weight Adjustments
     inputWeights.add(inputWeightsAdjustment);

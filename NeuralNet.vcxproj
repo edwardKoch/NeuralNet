@@ -131,10 +131,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Matrix.h" />
+    <ClInclude Include="minstTest.h" />
     <ClInclude Include="NeuralNet.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="minstData\t10k-images.idx3-ubyte" />
+    <None Include="minstData\t10k-labels.idx1-ubyte" />
+    <None Include="minstData\train-images.idx3-ubyte" />
+    <None Include="minstData\train-labels.idx1-ubyte" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
