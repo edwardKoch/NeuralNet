@@ -11,6 +11,15 @@
 const uint16_t IMG_WIDTH = 28;
 const uint16_t IMG_LEN = IMG_WIDTH * IMG_WIDTH;
 
+const uint16_t numOutput = 10;
+const uint16_t numHidden = 100;
+
+std::mt19937 mnistRng((uint32_t)std::time(0));
+NeuralNet<IMG_LEN, numHidden, numOutput>* brain = new NeuralNet<IMG_LEN, numHidden, numOutput>(mnistRng,    // Random Number Generator
+    NN::Activations::SIGMOID, // Activation Function
+    0.001); // Learning Rate
+
+
 struct minstImage
 {
     uint16_t label;
@@ -22,19 +31,23 @@ struct minstImage
 
 uint16_t MAX_IMAGES = 0xFFFF;
 
+// Only test and train for a subset of digits
+uint16_t TESTING_MASK[numOutput] = { 1,  // 0
+                                     0,  // 1
+                                     0,  // 2
+                                     0,  // 3
+                                     0,  // 4
+                                     1,  // 5
+                                     0,  // 6
+                                     0,  // 7
+                                     0,  // 8
+                                     0 };// 9
+
 uint16_t numTraining = 0;
 std::vector<minstImage> trainingSet;
 
 uint16_t numTest = 0;
 std::vector<minstImage> testSet;
-
-const uint16_t numOutput = 10;
-const uint16_t numHidden = 64;
-
-std::mt19937 mnistRng((uint32_t)std::time(0));
-NeuralNet<IMG_LEN, numHidden, numOutput>* brain = new NeuralNet<IMG_LEN, numHidden, numOutput>(mnistRng,    // Random Number Generator
-    NN::Activations::SIGMOID, // Activation Function
-    0.001); // Learning Rate
 
 void drawImage(minstImage* img)
 {
@@ -251,7 +264,7 @@ template <typename T>
 int getHighestIndex(T* arr, uint16_t arrSize)
 {
     int index = -1;
-    T highest = 0.0;
+    T highest = static_cast<T>(0.0);
 
     for (int i = 0; i < arrSize; ++i)
     {
@@ -281,22 +294,27 @@ void trainEpoch()
 
     while (numImagesTrained < numTraining)
     {
-        int idx = uniformDist(mnistRng);
-
-        if (trainingSet[idx].label != getHighestIndex(numTrained, numOutput))
+        //int idx = uniformDist(mnistRng);
+        // Temp train all images in order
+        for (int idx = 0; idx < numTraining; ++idx)
         {
-            // Set Correct Answer
-            answer[trainingSet[idx].label] = 1.0;
+            if (TESTING_MASK[trainingSet[idx].label] == 1 &&
+                //true)
+                trainingSet[idx].label != getHighestIndex(numTrained, numOutput))
+            {
+                // Set Correct Answer
+                answer[trainingSet[idx].label] = 1.0;
 
-            // Train NN
-            brain->train(trainingSet[0].image, answer);
-            // Track how many of each digit were trained
-            ++numTrained[trainingSet[idx].label];
-            ++numImagesTrained;
+                // Train NN
+                brain->train(trainingSet[0].image, answer);
+                // Track how many of each digit were trained
+                ++numTrained[trainingSet[idx].label];
+                ++numImagesTrained;
 
-            // Reset Answer Array
-            answer[trainingSet[idx].label] = 0.0;
+                // Reset Answer Array
+                answer[trainingSet[idx].label] = 0.0;
 
+            }
         }
     }
 }
@@ -316,20 +334,17 @@ double_t testEpoch()
     double_t numImagesTested = 1.0;
     double_t numCorrect = 0.0;
 
-    while (numImagesTested < numTest)
+    for(int i = 0; i < numTest; ++i)
     {
-        int idx = uniformDist(mnistRng);
-
-        if (testSet[idx].label != getHighestIndex(numTested, numOutput))
+        if (TESTING_MASK[testSet[i].label] == 1)
         {
-
             // Test NN
-            brain->guess(testSet[idx].image, output);
+            brain->guess(testSet[i].image, output);
             // Track how many of each digit were tested
-            ++numTested[testSet[idx].label];
+            ++numTested[testSet[i].label];
             ++numImagesTested;
 
-            if (getHighestIndex(output, numOutput) == testSet[idx].label)
+            if (getHighestIndex(output, numOutput) == testSet[i].label)
             {
                 ++numCorrect;
             }
@@ -360,7 +375,7 @@ void minstMain()
 
     std::uniform_real_distribution<float> uniformDist(0, numTraining);
 
-    uint16_t numToTrain = 100;
+    uint16_t numToTrain = 5;
     uint16_t numEpochs = 0;
 
     do
